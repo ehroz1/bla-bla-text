@@ -1,0 +1,43 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! **Never paste your API key** into an issue.
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Service
+      options: [Groq, Google Gemini, ElevenLabs, Speechmatics, AssemblyAI, Gladia, Mistral, Deepgram, Soniox, Yandex SpeechKit, OpenAI, Not provider-specific]
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 140 on Windows 11
+    validations:
+      required: true
+  - type: input
+    id: file
+    attributes:
+      label: File type, size and duration
+      placeholder: mp4 video, 180 MB, 42 min
+  - type: dropdown
+    id: prepare
+    attributes:
+      label: File preparation mode
+      options: [MP3 (default), WAV, Original file]
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the exact error text shown in the app (a screenshot is fine).
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?

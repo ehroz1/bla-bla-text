@@ -1,0 +1,25 @@
+name: Provider update or request
+description: A free tier, model or endpoint changed, or a new speech-to-text service should be added
+labels: [provider]
+body:
+  - type: input
+    id: provider
+    attributes:
+      label: Service
+      placeholder: e.g. Soniox, or a new service name
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What changed / why add it?
+      description: Free tier, limits, models, languages (Russian, English, Kazakh?), browser CORS support.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source link
+      description: Official docs or pricing page.
+    validations:
+      required: true

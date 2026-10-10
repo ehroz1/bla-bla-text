@@ -1,7 +1,28 @@
 {
   "name": "bla-bla-text",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Browser-only audio & video transcription with your own free API keys — 11 speech-to-text services, tuned for mixed Russian/English and Kazakh.",
+  "homepage": "https://ehroz1.github.io/bla-bla-text/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ehroz1/bla-bla-text.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ehroz1/bla-bla-text/issues"
+  },
+  "keywords": [
+    "speech-to-text",
+    "transcription",
+    "whisper",
+    "subtitles",
+    "srt",
+    "russian",
+    "kazakh",
+    "code-switching",
+    "browser",
+    "react"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +30,9 @@
     "build:single": "tsc -b && vite build --mode single",
     "lint": "oxlint",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test:fixtures": "bash scripts/make-fixtures.sh tests/fixtures",
+    "test:e2e": "node tests/e2e.mjs tests/fixtures"
   },
   "dependencies": {
     "@mediabunny/mp3-encoder": "^1.61.3",
@@ -29,6 +52,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
+    "playwright": "^1.56.1",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vite-plugin-singlefile": "^2.3.3"

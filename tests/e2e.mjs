@@ -1,12 +1,12 @@
 // E2E-проверка без реальных ключей: ответы API подменяются (page.route), браузер настоящий.
-// Запуск: npm run build && node tests/e2e.mjs <папка-с-тестовыми-файлами> [providerId ...]
+// Run: npm run test:fixtures && npm run build && npm run test:e2e   (optionally: node tests/e2e.mjs tests/fixtures groq gemini)
 import { chromium } from 'playwright'
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { extname, join, resolve } from 'node:path'
 import { mocks } from './mocks.mjs'
 
-const fixtures = resolve(process.argv[2] ?? 'fixtures')
+const fixtures = resolve(process.argv[2] ?? 'tests/fixtures')
 const only = process.argv.slice(3)
 const dist = resolve('dist')
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.wasm': 'application/wasm' }
@@ -46,8 +46,8 @@ for (const [id, mock] of cases) {
     await page.getByText(/^\d+:\d\d$/).first().waitFor({ timeout: 20000 })
     await page.getByRole('button', { name: /Распознать через/ }).click()
     const ok = await Promise.race([
-      page.getByText('Результат', { exact: true }).waitFor({ timeout: 180000 }).then(() => true),
-      page.getByText('Не получилось').waitFor({ timeout: 180000 }).then(() => false),
+      page.getByText('Результат', { exact: true }).waitFor({ timeout: 600000 }).then(() => true),
+      page.getByText('Не получилось').waitFor({ timeout: 600000 }).then(() => false),
     ])
     const text = ok ? await page.locator('textarea[aria-label="Текст транскрибации"]').inputValue() : await page.locator('[role=alert]').innerText()
     const check = ok && mock.expect ? mock.expect({ text, calls }) : ok

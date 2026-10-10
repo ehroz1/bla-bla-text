@@ -57,17 +57,17 @@ export const mocks = {
   },
 }
 
-const words = (arr) => arr // helper for readability
+
 
 Object.assign(mocks, {
   elevenlabs: {
     match: 'https://api.elevenlabs.io/**',
-    respond: (req) =>
+    respond: () =>
       json({
         language_code: 'rus',
         text: 'Привет, team. Как дела?',
         audio_duration_secs: 20,
-        words: words([
+        words: [
           { text: 'Привет,', start: 0, end: 0.5, type: 'word', speaker_id: 'speaker_0' },
           { text: ' ', start: 0.5, end: 0.6, type: 'spacing', speaker_id: 'speaker_0' },
           { text: 'team.', start: 0.6, end: 1, type: 'word', speaker_id: 'speaker_0' },
@@ -75,7 +75,7 @@ Object.assign(mocks, {
           { text: 'Как', start: 1.2, end: 1.4, type: 'word', speaker_id: 'speaker_1' },
           { text: ' ', start: 1.4, end: 1.5, type: 'spacing', speaker_id: 'speaker_1' },
           { text: 'дела?', start: 1.5, end: 2, type: 'word', speaker_id: 'speaker_1' },
-        ]),
+        ],
       }),
     expect: ({ text, calls }) =>
       calls[0].headers['xi-api-key'] === 'test-key' && text.includes('Спикер 1: Привет, team.') && text.includes('Спикер 2: Как дела?') ? true : 'bad: ' + text,
