@@ -1,5 +1,6 @@
 import { sleep } from '@/lib/utils'
 import type { ProviderContext } from './types'
+import { t, tf, tx } from '@/lib/i18n'
 
 export class ApiError extends Error {
   status: number
@@ -43,27 +44,27 @@ function humanize(status: number, msg?: string): string {
   const base = msg ? `: ${msg}` : ''
   switch (status) {
     case 400:
-      return `Сервис отклонил запрос (400)${base}`
+      return tx(t('Сервис отклонил запрос (400)', 'The service rejected the request (400)')) + base
     case 401:
-      return `Ключ не подходит (401) — проверьте, что скопировали его целиком${base}`
+      return tx(t('Ключ не подходит (401) — проверьте, что скопировали его целиком', 'Invalid key (401) — make sure you copied all of it')) + base
     case 402:
-      return `Закончились кредиты/баланс (402)${base}`
+      return tx(t('Закончились кредиты/баланс (402)', 'Out of credits / balance (402)')) + base
     case 403:
-      return `Доступ запрещён (403) — у ключа нет прав, или сервис недоступен из вашей страны${base}`
+      return tx(t('Доступ запрещён (403) — у ключа нет прав, или сервис недоступен из вашей страны', 'Access denied (403) — the key lacks permissions, or the service is unavailable in your country')) + base
     case 404:
-      return `Не найдено (404) — модель или адрес API изменились${base}`
+      return tx(t('Не найдено (404) — модель или адрес API изменились', 'Not found (404) — the model or API address has changed')) + base
     case 413:
-      return `Файл слишком большой для этого сервиса (413)${base}`
+      return tx(t('Файл слишком большой для этого сервиса (413)', 'The file is too large for this service (413)')) + base
     case 415:
-      return `Формат файла не поддерживается (415)${base}`
+      return tx(t('Формат файла не поддерживается (415)', 'Unsupported file format (415)')) + base
     case 429:
-      return `Превышен лимит запросов (429) — подождите или смените сервис${base}`
+      return tx(t('Превышен лимит запросов (429) — подождите или смените сервис', 'Rate limit exceeded (429) — wait or switch to another service')) + base
     default:
-      return status >= 500 ? `Ошибка на стороне сервиса (${status})${base}` : `Ошибка ${status}${base}`
+      return (status >= 500 ? tf(t('Ошибка на стороне сервиса ({status})', 'Service-side error ({status})'), { status }) : tf(t('Ошибка {status}', 'Error {status}'), { status })) + base
   }
 }
 
-/** fetch + разбор ошибок + понятные сообщения на русском. */
+/** fetch + разбор ошибок + понятные сообщения на языке интерфейса. */
 export async function request(
   ctx: Pick<ProviderContext, 'fetch' | 'signal'>,
   url: string,
@@ -75,8 +76,12 @@ export async function request(
   } catch (e) {
     if ((e as Error)?.name === 'AbortError') throw e
     throw new Error(
-      'Браузер не смог отправить запрос: нет сети, блокировщик рекламы/VPN, или сервис запрещает прямые запросы из браузера (CORS). ' +
-        'Включите CORS-прокси в «Настройках» для этого сервиса.',
+      tx(
+        t(
+          'Браузер не смог отправить запрос: нет сети, блокировщик рекламы/VPN, или сервис запрещает прямые запросы из браузера (CORS). Включите CORS-прокси в «Настройках» для этого сервиса.',
+          'The browser could not send the request: no network, an ad blocker/VPN, or the service blocks direct browser requests (CORS). Enable the CORS proxy for this service in Settings.',
+        ),
+      ),
     )
   }
   if (!res.ok) {
@@ -119,8 +124,9 @@ export async function poll<T>(
     const r = await fn()
     if (r.done) return r.value as T
     const secs = Math.round((Date.now() - started) / 1000)
-    ctx.onStatus(`Сервис обрабатывает файл… ${r.status ? `(${r.status}) ` : ''}${secs} с`)
-    if (Date.now() - started > timeoutMs) throw new Error('Сервис слишком долго обрабатывает файл — попробуйте позже')
+    ctx.onStatus(tf(t('Сервис обрабатывает файл… {st}{secs} с', 'The service is processing the file… {st}{secs} s'), { st: r.status ? `(${r.status}) ` : '', secs }))
+    if (Date.now() - started > timeoutMs)
+      throw new Error(tx(t('Сервис слишком долго обрабатывает файл — попробуйте позже', 'The service is taking too long — try again later')))
     await sleep(interval, ctx.signal)
   }
 }

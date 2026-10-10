@@ -1,6 +1,7 @@
 import { type AudioChunk, type PrepareMode, prepareChunks } from '@/lib/audio'
 import { mergeResults } from '@/lib/export'
 import type { Provider, SettingValues, TranscriptResult } from '@/providers/types'
+import { t, tf, tx } from '@/lib/i18n'
 
 export interface RunOptions {
   file: File
@@ -28,9 +29,9 @@ export async function runTranscription(o: RunOptions): Promise<{ result: Transcr
   const parts: { offset: number; result: TranscriptResult }[] = []
   for (let i = 0; i < chunks.length; i++) {
     const c = chunks[i]
-    const label = chunks.length > 1 ? `Часть ${i + 1} из ${chunks.length}: ` : ''
+    const label = chunks.length > 1 ? tf(t('Часть {i} из {n}: ', 'Part {i} of {n}: '), { i: i + 1, n: chunks.length }) : ''
     const base = 0.3 + (0.7 * i) / chunks.length
-    o.onStatus(`${label}отправляю в ${o.provider.name}…`, base)
+    o.onStatus(label + tf(t('отправляю в {name}…', 'sending to {name}…'), { name: o.provider.name }), base)
     const result = await o.provider.transcribe(c.blob, c.fileName, {
       apiKey: o.apiKey,
       settings: o.settings,
@@ -40,6 +41,6 @@ export async function runTranscription(o: RunOptions): Promise<{ result: Transcr
     })
     parts.push({ offset: c.start, result })
   }
-  o.onStatus('Готово', 1)
+  o.onStatus(tx(t('Готово', 'Done')), 1)
   return { result: mergeResults(parts), chunks }
 }

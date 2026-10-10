@@ -18,15 +18,16 @@ import { cn } from '@/lib/utils'
 import { providerById, providers } from '@/providers'
 import { makeFetch } from '@/providers/http'
 import type { SettingValues, TranscriptResult } from '@/providers/types'
+import { detectLang, type L, type Lang, setLang, t, tf, tx } from '@/lib/i18n'
 
 type Page = 'transcribe' | 'limits' | 'history' | 'settings' | 'about'
 
-const NAV: { id: Page; label: string; icon: React.ReactNode }[] = [
-  { id: 'transcribe', label: 'Транскрибация', icon: <AudioLines /> },
-  { id: 'limits', label: 'Сервисы и лимиты', icon: <Gauge /> },
-  { id: 'history', label: 'История', icon: <History /> },
-  { id: 'settings', label: 'Настройки', icon: <Settings /> },
-  { id: 'about', label: 'О проекте', icon: <Info /> },
+const NAV: { id: Page; label: L; icon: React.ReactNode }[] = [
+  { id: 'transcribe', label: t('Транскрибация', 'Transcribe'), icon: <AudioLines /> },
+  { id: 'limits', label: t('Сервисы и лимиты', 'Services & limits'), icon: <Gauge /> },
+  { id: 'history', label: t('История', 'History'), icon: <History /> },
+  { id: 'settings', label: t('Настройки', 'Settings'), icon: <Settings /> },
+  { id: 'about', label: t('О проекте', 'About'), icon: <Info /> },
 ]
 
 function useTheme(theme: Prefs['theme']) {
@@ -89,6 +90,12 @@ export default function App() {
     store.setPrefs(p)
   }
   useTheme(prefs.theme)
+  // Язык выставляется до рендера дочерних компонентов: они читают его через tx().
+  const lang: Lang = prefs.lang ?? detectLang()
+  setLang(lang)
+  useEffect(() => {
+    document.title = tx(t('BLA-БЛА — транскрибация аудио и видео', 'BLA-БЛА — audio & video transcription'))
+  }, [lang])
   useEffect(() => {
     const onHash = () => setPage((location.hash.slice(1) as Page) || 'transcribe')
     addEventListener('hashchange', onHash)
@@ -141,7 +148,7 @@ export default function App() {
     setRunning(true)
     setError(null)
     setResult(null)
-    setStatus({ text: 'Готовлю файл…', progress: 0 })
+    setStatus({ text: tx(t('Готовлю файл…', 'Preparing the file…')), progress: 0 })
     const startedAt = Date.now()
     try {
       const { result } = await runTranscription({
@@ -167,13 +174,13 @@ export default function App() {
         duration: seconds,
         result: { ...result, raw: undefined },
       })
-      setStatus({ text: `Готово за ${Math.round((Date.now() - startedAt) / 1000)} с`, progress: 1 })
+      setStatus({ text: tf(t('Готово за {s} с', 'Done in {s} s'), { s: Math.round((Date.now() - startedAt) / 1000) }), progress: 1 })
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
     } catch (e) {
       const err = e as Error
       if (err.name === 'AbortError' || ctl.signal.aborted) {
         setStatus(null)
-        setError('Остановлено')
+        setError(tx(t('Остановлено', 'Stopped')))
       } else {
         console.error(e)
         setError(err.message || String(e))
@@ -196,7 +203,7 @@ export default function App() {
             <Logo className="size-9" />
             <div className="hidden text-left leading-tight sm:block">
               <div className="font-bold tracking-tight">BLA-БЛА</div>
-              <div className="text-[11px] text-muted-foreground">аудио и видео → текст</div>
+              <div className="text-[11px] text-muted-foreground">{tx(t('аудио и видео → текст', 'audio & video → text'))}</div>
             </div>
           </button>
           <nav className="flex flex-1 items-center gap-0.5 overflow-x-auto">
@@ -207,18 +214,36 @@ export default function App() {
                 variant="ghost"
                 onClick={() => go(n.id)}
                 className={cn(page === n.id ? 'bg-accent text-accent-foreground' : 'text-muted-foreground')}
-                title={n.label}
+                title={tx(n.label)}
               >
                 {n.icon}
-                <span className="hidden md:inline">{n.label}</span>
+                <span className="hidden md:inline">{tx(n.label)}</span>
               </Button>
             ))}
           </nav>
           <Button
+            size="sm"
+            variant="ghost"
+            className="px-2 font-mono text-xs font-semibold"
+            onClick={() => setPrefs({ ...prefs, lang: lang === 'ru' ? 'en' : 'ru' })}
+            title={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+            aria-label={lang === 'ru' ? 'Switch to English' : 'Переключить на русский'}
+          >
+            {lang === 'ru' ? 'EN' : 'RU'}
+          </Button>
+          <Button
             size="icon-sm"
             variant="ghost"
             onClick={() => setPrefs({ ...prefs, theme: nextTheme })}
-            title={`Тема: ${prefs.theme === 'system' ? 'как в системе' : prefs.theme === 'dark' ? 'тёмная' : 'светлая'}`}
+            title={tf(t('Тема: {v}', 'Theme: {v}'), {
+              v: tx(
+                prefs.theme === 'system'
+                  ? t('как в системе', 'system')
+                  : prefs.theme === 'dark'
+                    ? t('тёмная', 'dark')
+                    : t('светлая', 'light'),
+              ),
+            })}
           >
             {themeIcon}
           </Button>
@@ -234,16 +259,27 @@ export default function App() {
         {page === 'transcribe' && (
           <div className="space-y-6">
             <section className="flex flex-col gap-2">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Транскрибация аудио и видео</h1>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {tx(t('Транскрибация аудио и видео', 'Audio & video transcription'))}
+              </h1>
               <p className="max-w-3xl text-muted-foreground">
-                Загрузите файл, выберите сервис распознавания речи, вставьте свой бесплатный API-ключ — и получите текст
-                с таймкодами. Русский, английский вперемешку и казахский. Всё работает в браузере, без нашего сервера.
+                {tx(
+                  t(
+                    'Загрузите файл, выберите сервис распознавания речи, вставьте свой бесплатный API-ключ — и получите текст с таймкодами. Русский, английский вперемешку и казахский. Всё работает в браузере, без нашего сервера.',
+                    'Upload a file, pick a speech-to-text service, paste your own free API key — and get text with timestamps. Russian, mixed Russian + English, and Kazakh. Everything runs in your browser, with no server of ours.',
+                  ),
+                )}
               </p>
             </section>
 
             <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
               <div className="space-y-6">
-                <Step n={1} title="Файл" description="Любое аудио или видео — звук извлечём сами." done={!!file}>
+                <Step
+                  n={1}
+                  title={tx(t('Файл', 'File'))}
+                  description={tx(t('Любое аудио или видео — звук извлечём сами.', 'Any audio or video — we extract the sound for you.'))}
+                  done={!!file}
+                >
                   <FileStep
                     file={file}
                     info={info}
@@ -254,7 +290,12 @@ export default function App() {
                   />
                 </Step>
 
-                <Step n={2} title="Сервис" description="Точки — качество распознавания по языкам." done>
+                <Step
+                  n={2}
+                  title={tx(t('Сервис', 'Service'))}
+                  description={tx(t('Точки — качество распознавания по языкам.', 'Dots show recognition quality per language.'))}
+                  done
+                >
                   <ProviderPicker value={provider.id} onChange={selectProvider} disabled={running} />
                   <div className="mt-5 border-t pt-5 lg:hidden">
                     <div className="mb-3 font-medium">{provider.name}</div>
@@ -262,18 +303,23 @@ export default function App() {
                   </div>
                 </Step>
 
-                <Step n={3} title="API-ключ" description="Сохраняется в этом браузере — вводить второй раз не нужно." done={!!apiKey}>
+                <Step
+                  n={3}
+                  title={tx(t('API-ключ', 'API key'))}
+                  description={tx(t('Сохраняется в этом браузере — вводить второй раз не нужно.', 'Saved in this browser — no need to enter it again.'))}
+                  done={!!apiKey}
+                >
                   <KeyStep provider={provider} apiKey={apiKey} onKey={setApiKey} fetchFn={fetchFn} disabled={running} />
                 </Step>
 
                 <Step
                   n={4}
-                  title="Настройки"
-                  description="Язык, модель, спикеры, подсказки."
+                  title={tx(t('Настройки', 'Settings'))}
+                  description={tx(t('Язык, модель, спикеры, подсказки.', 'Language, model, speakers, hints.'))}
                   aside={
                     prefs.corsProxy ? (
                       <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                        прокси
+                        {tx(t('прокси', 'proxy'))}
                         <Switch
                           checked={useProxy}
                           onCheckedChange={(c) => setPrefs({ ...prefs, useProxyFor: { ...prefs.useProxyFor, [provider.id]: c } })}
@@ -298,15 +344,15 @@ export default function App() {
                     <div className="flex flex-wrap items-center gap-3">
                       {running ? (
                         <Button size="lg" variant="outline" onClick={() => abortRef.current?.abort()}>
-                          <Square /> Остановить
+                          <Square /> {tx(t('Остановить', 'Stop'))}
                         </Button>
                       ) : (
                         <Button size="lg" onClick={start} disabled={!file || !apiKey || (info != null && !info.hasAudio)}>
-                          <Play /> Распознать через {provider.name}
+                          <Play /> {tf(t('Распознать через {name}', 'Transcribe with {name}'), { name: provider.name })}
                         </Button>
                       )}
-                      {!file && <span className="text-sm text-muted-foreground">Добавьте файл</span>}
-                      {file && !apiKey && <span className="text-sm text-muted-foreground">Вставьте API-ключ</span>}
+                      {!file && <span className="text-sm text-muted-foreground">{tx(t('Добавьте файл', 'Add a file'))}</span>}
+                      {file && !apiKey && <span className="text-sm text-muted-foreground">{tx(t('Вставьте API-ключ', 'Paste an API key'))}</span>}
                     </div>
                     {status && (
                       <div className="space-y-2">
@@ -319,7 +365,7 @@ export default function App() {
                     )}
                     {error && (
                       <Alert variant="destructive">
-                        <AlertTitle>Не получилось</AlertTitle>
+                        <AlertTitle>{tx(t('Не получилось', 'Something went wrong'))}</AlertTitle>
                         <AlertDescription>
                           <p className="break-words">{error}</p>
                         </AlertDescription>
@@ -335,12 +381,12 @@ export default function App() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <CardTitle className="text-lg">{provider.name}</CardTitle>
-                        <CardDescription>{provider.vendor}</CardDescription>
+                        <CardDescription>{tx(provider.vendor)}</CardDescription>
                       </div>
                       <div className="flex flex-wrap justify-end gap-1">
                         {provider.tags.includes('ru-en') && <Badge variant="secondary">RU+EN</Badge>}
                         {provider.tags.includes('kk') && <Badge variant="secondary">KZ</Badge>}
-                        {provider.tags.includes('diarization') && <Badge variant="secondary">спикеры</Badge>}
+                        {provider.tags.includes('diarization') && <Badge variant="secondary">{tx(t('спикеры', 'speakers'))}</Badge>}
                       </div>
                     </div>
                   </CardHeader>
@@ -355,9 +401,10 @@ export default function App() {
               <div ref={resultRef} className="scroll-mt-20">
                 <Card className="gap-4">
                   <CardHeader>
-                    <CardTitle className="text-lg">Результат</CardTitle>
+                    <CardTitle className="text-lg">{tx(t('Результат', 'Result'))}</CardTitle>
                     <CardDescription>
-                      {file?.name} · {provider.name}. Текст можно поправить прямо здесь перед скачиванием.
+                      {file?.name} · {provider.name}.{' '}
+                      {tx(t('Текст можно поправить прямо здесь перед скачиванием.', 'You can edit the text right here before downloading.'))}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -375,7 +422,8 @@ export default function App() {
       </main>
 
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        BLA-БЛА · ключи и файлы не покидают ваш браузер, кроме запроса к выбранному сервису
+        BLA-БЛА ·{' '}
+        {tx(t('ключи и файлы не покидают ваш браузер, кроме запроса к выбранному сервису', 'keys and files never leave your browser except for the request to the service you choose'))}
       </footer>
     </div>
   )

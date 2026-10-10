@@ -12,6 +12,7 @@ import {
   Output,
   WavOutputFormat,
 } from 'mediabunny'
+import { t, tf, tx } from '@/lib/i18n'
 
 export type PrepareMode = 'mp3' | 'wav' | 'original'
 
@@ -136,7 +137,7 @@ async function convertWithMediabunny(file: Blob, opts: ConvertOpts): Promise<Blo
     })
     if (!conversion.isValid) {
       const reasons = conversion.discardedTracks.map((d) => `${d.track.type}: ${d.reason}`).join(', ')
-      throw new Error(`Браузер не может декодировать этот файл (${reasons || 'нет аудиодорожки'})`)
+      throw new Error(tf(t('Браузер не может декодировать этот файл ({r})', 'The browser cannot decode this file ({r})'), { r: reasons || tx(t('нет аудиодорожки', 'no audio track')) }))
     }
     if (opts.onProgress) conversion.onProgress = (p) => opts.onProgress!(p)
     const onAbort = () => void conversion.cancel()
@@ -146,7 +147,7 @@ async function convertWithMediabunny(file: Blob, opts: ConvertOpts): Promise<Blo
     } finally {
       opts.signal?.removeEventListener('abort', onAbort)
     }
-    if (opts.signal?.aborted) throw new DOMException('Отменено', 'AbortError')
+    if (opts.signal?.aborted) throw new DOMException(tx(t('Отменено', 'Cancelled')), 'AbortError')
     return new Blob([target.buffer!], { type: opts.mode === 'mp3' ? 'audio/mpeg' : 'audio/wav' })
   } finally {
     input.dispose()
@@ -229,7 +230,13 @@ export async function prepareChunks(file: File, opts: PrepareOptions): Promise<A
   if (opts.mode === 'original') {
     if (file.size > opts.maxBytes) {
       throw new Error(
-        `Файл ${(file.size / 1024 ** 2).toFixed(1)} МБ больше лимита сервиса (${(opts.maxBytes / 1024 ** 2).toFixed(0)} МБ). Включите «Сжать в MP3» — тогда файл будет сжат и порезан на части автоматически.`,
+        tf(
+          t(
+            'Файл {size} МБ больше лимита сервиса ({max} МБ). Включите «Сжать в MP3» — тогда файл будет сжат и порезан на части автоматически.',
+            'The file is {size} MB, over the service limit ({max} MB). Choose “Compress to MP3” and it will be compressed and split automatically.',
+          ),
+          { size: (file.size / 1024 ** 2).toFixed(1), max: (opts.maxBytes / 1024 ** 2).toFixed(0) },
+        ),
       )
     }
     return [{ blob: file, fileName: file.name, mimeType: file.type || 'application/octet-stream', start: 0, end: duration ?? 0 }]
@@ -243,11 +250,12 @@ export async function prepareChunks(file: File, opts: PrepareOptions): Promise<A
 
   // 1) Try the fast path: WebCodecs via mediabunny.
   try {
-    onStatus?.('Извлекаю и сжимаю аудио…', 0)
+    const extracting = tx(t('Извлекаю и сжимаю аудио…', 'Extracting and compressing audio…'))
+    onStatus?.(extracting, 0)
     const full = await convertWithMediabunny(file, {
       mode,
       signal,
-      onProgress: (p) => onStatus?.('Извлекаю и сжимаю аудио…', p),
+      onProgress: (p) => onStatus?.(extracting, p),
     })
     const total = duration ?? full.size / BYTES_PER_SEC[mode]
     if (total <= chunkSec * 1.05) {
@@ -259,7 +267,7 @@ export async function prepareChunks(file: File, opts: PrepareOptions): Promise<A
     for (let i = 0; i < n; i++) {
       const start = i * chunkSec
       const end = i === n - 1 ? total : start + chunkSec
-      onStatus?.(`Режу на части: ${i + 1} из ${n}`, i / n)
+      onStatus?.(tf(t('Режу на части: {i} из {n}', 'Splitting into parts: {i} of {n}'), { i: i + 1, n }), i / n)
       const blob = await convertWithMediabunny(full, { mode, start, end, signal })
       chunks.push({ blob, fileName: `${name}.part${i + 1}.${ext}`, mimeType: mime, start, end })
     }
@@ -270,18 +278,24 @@ export async function prepareChunks(file: File, opts: PrepareOptions): Promise<A
   }
 
   // 2) Fallback: decode with Web Audio API, emit WAV chunks.
-  onStatus?.('Декодирую аудио (запасной режим)…')
+  onStatus?.(tx(t('Декодирую аудио (запасной режим)…', 'Decoding audio (fallback mode)…')))
   let samples: Float32Array
   try {
     samples = await decodeToMono16k(file)
   } catch (e) {
     // 3) Браузер не умеет этот кодек — отправим файл как есть, если он влезает в лимит.
     if (file.size <= opts.maxBytes) {
-      onStatus?.('Браузер не смог декодировать файл — отправляю как есть')
+      onStatus?.(tx(t('Браузер не смог декодировать файл — отправляю как есть', 'The browser could not decode the file — sending it as is')))
       return [{ blob: file, fileName: file.name, mimeType: file.type || 'application/octet-stream', start: 0, end: duration ?? 0 }]
     }
     throw new Error(
-      `Браузер не может декодировать этот файл (${(e as Error).message}), а целиком он больше лимита сервиса. Попробуйте Chrome/Edge или сконвертируйте в MP3.`,
+      tf(
+        t(
+          'Браузер не может декодировать этот файл ({m}), а целиком он больше лимита сервиса. Попробуйте Chrome/Edge или сконвертируйте в MP3.',
+          'The browser cannot decode this file ({m}) and it is larger than the service limit. Try Chrome/Edge or convert it to MP3.',
+        ),
+        { m: (e as Error).message },
+      ),
     )
   }
   const total = samples.length / SAMPLE_RATE

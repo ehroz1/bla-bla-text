@@ -11,15 +11,21 @@ import { type HistoryEntry, type Prefs, store } from '@/lib/storage'
 import { formatDuration } from '@/lib/utils'
 import { providerById, providers } from '@/providers'
 import { makeFetch } from '@/providers/http'
+import { locale, t, tf, tx } from '@/lib/i18n'
+import { CARD_TEXT } from '@/providers/langs'
 
 export function LimitsPage({ prefs }: { prefs: Prefs }) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">Сервисы и лимиты</h2>
+        <h2 className="text-xl font-semibold tracking-tight">{tx(t('Сервисы и лимиты', 'Services & limits'))}</h2>
         <p className="text-sm text-muted-foreground">
-          Бесплатные тарифы, ограничения и ваш расход. Кнопка «Проверить» спрашивает остаток у самого сервиса — там, где
-          API это позволяет. Счётчик «через BLA-БЛА» ведётся локально в браузере.
+          {tx(
+            t(
+              'Бесплатные тарифы, ограничения и ваш расход. Кнопка «Проверить» спрашивает остаток у самого сервиса — там, где API это позволяет. Счётчик «через BLA-БЛА» ведётся локально в браузере.',
+              'Free tiers, limits and your usage. The “Check” button asks the service itself for the remaining balance, where its API allows it. The “via BLA-БЛА” counter is kept locally in your browser.',
+            ),
+          )}
         </p>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -32,15 +38,15 @@ export function LimitsPage({ prefs }: { prefs: Prefs }) {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <CardTitle>{p.name}</CardTitle>
-                    <CardDescription>{p.vendor}</CardDescription>
+                    <CardDescription>{tx(p.vendor)}</CardDescription>
                   </div>
                   {key ? (
                     <Badge variant="success">
-                      <CheckCircle2 /> ключ сохранён
+                      <CheckCircle2 /> {tx(t('ключ сохранён', 'key saved'))}
                     </Badge>
                   ) : (
                     <Badge variant="outline">
-                      <CircleDashed /> нет ключа
+                      <CircleDashed /> {tx(t('нет ключа', 'no key'))}
                     </Badge>
                   )}
                 </div>
@@ -48,13 +54,15 @@ export function LimitsPage({ prefs }: { prefs: Prefs }) {
               <CardContent className="space-y-3">
                 <LangMeter provider={p} />
                 <div className="flex flex-wrap gap-1">
-                  <Badge variant="success">{p.free}</Badge>
-                  <Badge variant="outline">карта: {p.card}</Badge>
+                  <Badge variant="success">{tx(p.free)}</Badge>
+                  <Badge variant="outline">
+                    {tx(t('карта', 'card'))}: {tx(CARD_TEXT[p.card])}
+                  </Badge>
                 </div>
-                <div className="text-sm text-muted-foreground">{p.pricing}</div>
+                <div className="text-sm text-muted-foreground">{tx(p.pricing)}</div>
                 <LimitsPanel provider={p} apiKey={key} fetchFn={fetchFn} />
                 <ButtonLink href={p.keyUrl} size="sm" variant="ghost">
-                  <ExternalLink /> Кабинет и ключи
+                  <ExternalLink /> {tx(t('Кабинет и ключи', 'Dashboard & keys'))}
                 </ButtonLink>
               </CardContent>
             </Card>
@@ -72,14 +80,21 @@ export function HistoryPage() {
     return (
       <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed py-16 text-center text-muted-foreground">
         <History className="size-6" />
-        <div>История пуста. Последние 30 расшифровок сохраняются здесь, в вашем браузере.</div>
+        <div>
+          {tx(
+            t(
+              'История пуста. Последние 30 расшифровок сохраняются здесь, в вашем браузере.',
+              'History is empty. Your last 30 transcripts are saved here, in your browser.',
+            ),
+          )}
+        </div>
       </div>
     )
   }
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight">История</h2>
+        <h2 className="text-xl font-semibold tracking-tight">{tx(t('История', 'History'))}</h2>
         <Button
           size="sm"
           variant="outline"
@@ -88,7 +103,7 @@ export function HistoryPage() {
             setList([])
           }}
         >
-          <Trash2 /> Очистить
+          <Trash2 /> {tx(t('Очистить', 'Clear'))}
         </Button>
       </div>
       {list.map((h) => (
@@ -98,14 +113,14 @@ export function HistoryPage() {
               <button type="button" className="min-w-0 text-left" onClick={() => setOpen(open === h.id ? null : h.id)}>
                 <CardTitle className="truncate">{h.fileName}</CardTitle>
                 <CardDescription className="mt-1">
-                  {new Date(h.at).toLocaleString('ru-RU')} · {providerById(h.provider)?.name ?? h.provider} ·{' '}
+                  {new Date(h.at).toLocaleString(locale())} · {providerById(h.provider)?.name ?? h.provider} ·{' '}
                   {formatDuration(h.duration)}
                 </CardDescription>
               </button>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Удалить"
+                aria-label={tx(t('Удалить', 'Delete'))}
                 onClick={() => {
                   const next = list.filter((x) => x.id !== h.id)
                   store.setHistory(next)
@@ -135,26 +150,30 @@ export function SettingsPage({ prefs, onPrefs }: { prefs: Prefs; onPrefs: (p: Pr
   const [test, setTest] = useState<string>('')
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold tracking-tight">Настройки</h2>
+      <h2 className="text-xl font-semibold tracking-tight">{tx(t('Настройки', 'Settings'))}</h2>
       <Card>
         <CardHeader>
-          <CardTitle>CORS-прокси</CardTitle>
+          <CardTitle>{tx(t('CORS-прокси', 'CORS proxy'))}</CardTitle>
           <CardDescription>
-            Некоторые сервисы (Yandex SpeechKit, SaluteSpeech и др.) не принимают запросы напрямую из браузера. Для них
-            нужен свой маленький прокси — бесплатный Cloudflare Worker разворачивается за 5 минут.
+            {tx(
+              t(
+                'Некоторые сервисы (Deepgram, Yandex SpeechKit и др.) не принимают запросы напрямую из браузера. Для них нужен свой маленький прокси — бесплатный Cloudflare Worker разворачивается за 5 минут.',
+                'Some services (Deepgram, Yandex SpeechKit and others) refuse requests made directly from a browser. They need your own small proxy — a free Cloudflare Worker takes about 5 minutes to deploy.',
+              ),
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <ol className="list-decimal space-y-1 pl-5 text-sm">
             <li>
-              Зайдите на{' '}
+              {tx(t('Зайдите на', 'Go to'))}{' '}
               <a className="underline underline-offset-4" href="https://dash.cloudflare.com/sign-up/workers-and-pages" target="_blank" rel="noreferrer">
                 dash.cloudflare.com
               </a>{' '}
-              (бесплатно, без карты) → Workers &amp; Pages → Create → Create Worker → Deploy.
+              {tx(t('(бесплатно, без карты)', '(free, no card)'))} → Workers &amp; Pages → Create → Create Worker → Deploy.
             </li>
             <li>
-              Нажмите «Edit code», вставьте код из{' '}
+              {tx(t('Нажмите «Edit code», вставьте код из', 'Click “Edit code” and paste the code from'))}{' '}
               <a
                 className="underline underline-offset-4"
                 href="https://github.com/ehroz1/bla-bla-text/blob/main/proxy/cloudflare-worker.js"
@@ -165,10 +184,17 @@ export function SettingsPage({ prefs, onPrefs }: { prefs: Prefs; onPrefs: (p: Pr
               </a>{' '}
               → Deploy.
             </li>
-            <li>Скопируйте адрес воркера (https://…workers.dev) в поле ниже и включите прокси для нужных сервисов.</li>
+            <li>
+              {tx(
+                t(
+                  'Скопируйте адрес воркера (https://…workers.dev) в поле ниже и включите прокси для нужных сервисов.',
+                  'Copy the worker URL (https://…workers.dev) into the field below and enable the proxy for the services that need it.',
+                ),
+              )}
+            </li>
           </ol>
           <div className="grid gap-2">
-            <Label htmlFor="proxy">Адрес прокси</Label>
+            <Label htmlFor="proxy">{tx(t('Адрес прокси', 'Proxy URL'))}</Label>
             <div className="flex gap-2">
               <Input
                 id="proxy"
@@ -180,21 +206,25 @@ export function SettingsPage({ prefs, onPrefs }: { prefs: Prefs; onPrefs: (p: Pr
                 variant="outline"
                 disabled={!prefs.corsProxy}
                 onClick={async () => {
-                  setTest('Проверяю…')
+                  setTest(tx(t('Проверяю…', 'Checking…')))
                   try {
                     const r = await fetch(prefs.corsProxy.replace(/\/+$/, '') + '/https://api.groq.com/openai/v1/models')
-                    setTest(r.status === 401 ? 'Прокси работает ✓ (сервис ответил 401 без ключа — это нормально)' : `Прокси ответил: ${r.status}`)
+                    setTest(
+                      r.status === 401
+                        ? tx(t('Прокси работает ✓ (сервис ответил 401 без ключа — это нормально)', 'Proxy works ✓ (the service answered 401 without a key — that is expected)'))
+                        : tf(t('Прокси ответил: {s}', 'The proxy answered: {s}'), { s: r.status }),
+                    )
                   } catch (e) {
-                    setTest('Не удалось достучаться до прокси: ' + (e as Error).message)
+                    setTest(tx(t('Не удалось достучаться до прокси: ', 'Could not reach the proxy: ')) + (e as Error).message)
                   }
                 }}
               >
-                Проверить
+                {tx(t('Проверить', 'Check'))}
               </Button>
             </div>
             {test && <p className="text-xs text-muted-foreground">{test}</p>}
             <p className="text-xs text-muted-foreground">
-              Используйте только свой прокси: через него проходит ваш API-ключ.
+              {tx(t('Используйте только свой прокси: через него проходит ваш API-ключ.', 'Only use your own proxy: your API key passes through it.'))}
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -204,7 +234,7 @@ export function SettingsPage({ prefs, onPrefs }: { prefs: Prefs; onPrefs: (p: Pr
                   {p.name}{' '}
                   {p.cors === 'no' && (
                     <Badge variant="warning" className="ml-1">
-                      нужен
+                      {tx(t('нужен', 'needed'))}
                     </Badge>
                   )}
                 </span>
@@ -221,22 +251,27 @@ export function SettingsPage({ prefs, onPrefs }: { prefs: Prefs; onPrefs: (p: Pr
 
       <Card>
         <CardHeader>
-          <CardTitle>Данные в браузере</CardTitle>
+          <CardTitle>{tx(t('Данные в браузере', 'Data in your browser'))}</CardTitle>
           <CardDescription>
-            Ключи, настройки, история и счётчики хранятся только в localStorage этого браузера. Сервер у BLA-БЛА отсутствует.
+            {tx(
+              t(
+                'Ключи, настройки, история и счётчики хранятся только в localStorage этого браузера. Сервер у BLA-БЛА отсутствует.',
+                'Keys, settings, history and counters are stored only in this browser’s localStorage. BLA-БЛА has no server.',
+              ),
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button
             variant="destructive"
             onClick={() => {
-              if (confirm('Удалить все ключи, историю и настройки из этого браузера?')) {
+              if (confirm(tx(t('Удалить все ключи, историю и настройки из этого браузера?', 'Delete all keys, history and settings from this browser?')))) {
                 store.clearAll()
                 location.reload()
               }
             }}
           >
-            <Trash2 /> Стереть всё
+            <Trash2 /> {tx(t('Стереть всё', 'Erase everything'))}
           </Button>
         </CardContent>
       </Card>

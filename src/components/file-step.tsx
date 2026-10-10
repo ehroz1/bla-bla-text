@@ -5,6 +5,7 @@ import { NativeSelect, Label } from '@/components/ui/input'
 import { Badge } from '@/components/ui/misc'
 import type { MediaInfo, PrepareMode } from '@/lib/audio'
 import { cn, formatBytes, formatDuration } from '@/lib/utils'
+import { t, tx } from '@/lib/i18n'
 
 export function FileStep({
   file,
@@ -53,9 +54,9 @@ export function FileStep({
           <Upload className="size-5" />
         </div>
         <div>
-          <div className="font-medium">Перетащите аудио или видео сюда</div>
+          <div className="font-medium">{tx(t('Перетащите аудио или видео сюда', 'Drop audio or video here'))}</div>
           <div className="mt-1 text-sm text-muted-foreground">
-            или нажмите, чтобы выбрать · mp3, m4a, wav, ogg, opus, flac, mp4, mov, webm, mkv…
+            {tx(t('или нажмите, чтобы выбрать', 'or click to choose'))} · mp3, m4a, wav, ogg, opus, flac, mp4, mov, webm, mkv…
           </div>
         </div>
         <input
@@ -85,13 +86,13 @@ export function FileStep({
           </div>
           <div className="mt-1 flex flex-wrap gap-1.5 text-xs text-muted-foreground">
             <Badge variant="secondary">{formatBytes(file.size)}</Badge>
-            <Badge variant="secondary">{info ? formatDuration(info.duration) : 'читаю…'}</Badge>
-            {isVideo && <Badge variant="secondary">видео → возьмём только звук</Badge>}
+            <Badge variant="secondary">{info ? formatDuration(info.duration) : tx(t('читаю…', 'reading…'))}</Badge>
+            {isVideo && <Badge variant="secondary">{tx(t('видео → возьмём только звук', 'video → audio track only'))}</Badge>}
             {info?.audioCodec && <Badge variant="outline">{info.audioCodec}</Badge>}
-            {info && !info.hasAudio && <Badge variant="destructive">нет звуковой дорожки</Badge>}
+            {info && !info.hasAudio && <Badge variant="destructive">{tx(t('нет звуковой дорожки', 'no audio track'))}</Badge>}
           </div>
         </div>
-        <Button variant="ghost" size="icon-sm" onClick={() => onFile(null)} disabled={disabled} aria-label="Убрать файл">
+        <Button variant="ghost" size="icon-sm" onClick={() => onFile(null)} disabled={disabled} aria-label={tx(t('Убрать файл', 'Remove file'))}>
           <X />
         </Button>
       </div>
@@ -104,20 +105,26 @@ export function FileStep({
         ))}
 
       <div className="grid gap-2">
-        <Label htmlFor="prepare">Подготовка файла</Label>
+        <Label htmlFor="prepare">{tx(t('Подготовка файла', 'File preparation'))}</Label>
         <NativeSelect
           id="prepare"
           value={prepare}
           disabled={disabled}
           onChange={(e) => onPrepare(e.target.value as PrepareMode)}
         >
-          <option value="mp3">Сжать в MP3 16 кГц моно — рекомендуется (≈0,35 МБ/мин, авто-нарезка)</option>
-          <option value="wav">WAV 16 кГц моно — без потерь (≈1,9 МБ/мин, авто-нарезка)</option>
-          <option value="original">Отправить как есть (без обработки)</option>
+          <option value="mp3">
+            {tx(t('Сжать в MP3 16 кГц моно — рекомендуется (≈0,35 МБ/мин, авто-нарезка)', 'Compress to MP3 16 kHz mono — recommended (≈0.35 MB/min, auto-split)'))}
+          </option>
+          <option value="wav">{tx(t('WAV 16 кГц моно — без потерь (≈1,9 МБ/мин, авто-нарезка)', 'WAV 16 kHz mono — lossless (≈1.9 MB/min, auto-split)'))}</option>
+          <option value="original">{tx(t('Отправить как есть (без обработки)', 'Send as is (no processing)'))}</option>
         </NativeSelect>
         <p className="text-xs text-muted-foreground">
-          Обработка идёт прямо в браузере — файл никуда не загружается, кроме выбранного сервиса. Длинные записи
-          автоматически режутся на части под лимит сервиса и склеиваются обратно с правильными таймкодами.
+          {tx(
+            t(
+              'Обработка идёт прямо в браузере — файл никуда не загружается, кроме выбранного сервиса. Длинные записи автоматически режутся на части под лимит сервиса и склеиваются обратно с правильными таймкодами.',
+              'Processing happens right in your browser — the file is uploaded only to the service you choose. Long recordings are split to fit the service limit and stitched back together with correct timestamps.',
+            ),
+          )}
         </p>
       </div>
     </div>

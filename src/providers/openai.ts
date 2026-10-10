@@ -1,7 +1,8 @@
 import { openaiCheckKey, openaiTranscribe } from './openai-compatible'
-import { LANG_OPTIONS_WHISPER } from './langs'
+import { L_KEY, L_KEY_OK, L_LANGUAGE, L_MODEL, LANG_OPTIONS_WHISPER } from './langs'
 import { speakerName } from './segments'
 import type { Provider } from './types'
+import { t, tx } from '@/lib/i18n'
 
 const BASE = 'https://api.openai.com/v1'
 
@@ -9,21 +10,33 @@ export const openai: Provider = {
   id: 'openai',
   name: 'OpenAI',
   vendor: 'OpenAI',
-  tagline: 'gpt-4o-transcribe и Whisper — эталон качества. Платно: бесплатного лимита нет.',
-  description:
+  tagline: t(
+    'gpt-4o-transcribe и Whisper — эталон качества. Платно: бесплатного лимита нет.',
+    'gpt-4o-transcribe and Whisper — a quality benchmark. Paid: no free tier.',
+  ),
+  description: t(
     'Оригинальные модели OpenAI. gpt-4o-transcribe заметно точнее Whisper на смешанной речи и шумных записях, gpt-4o-transcribe-diarize размечает спикеров, whisper-1 даёт таймкоды. Бесплатного тарифа нет: нужно пополнить баланс от $5. Добавлен для сравнения и тем, у кого ключ уже есть.',
+    'The original OpenAI models. gpt-4o-transcribe is noticeably more accurate than Whisper on mixed speech and noisy recordings, gpt-4o-transcribe-diarize labels speakers, whisper-1 provides timestamps. There is no free tier: a top-up of $5 or more is required. Included for comparison and for those who already have a key.',
+  ),
   langs: { ru: 3, en: 3, kk: 1, mix: 3 },
-  free: 'Платно: от $0,18/ч',
-  limits: ['Нет бесплатного лимита — нужна предоплата от $5', 'Файл до 25 МБ за запрос (BLA-БЛА режет сама)', 'gpt-4o-transcribe не отдаёт таймкоды — для них выберите whisper-1'],
-  pricing: 'mini ≈ $0,18/ч, gpt-4o-transcribe и whisper-1 ≈ $0,36/ч',
-  card: 'нужна',
+  free: t('Платно: от $0,18/ч', 'Paid: from $0.18/h'),
+  limits: [
+    t('Нет бесплатного лимита — нужна предоплата от $5', 'No free tier — prepayment of $5 or more is required'),
+    t('Файл до 25 МБ за запрос (BLA-БЛА режет сама)', 'Up to 25 MB per request (BLA-БЛА splits automatically)'),
+    t('gpt-4o-transcribe не отдаёт таймкоды — для них выберите whisper-1', 'gpt-4o-transcribe returns no timestamps — choose whisper-1 for them'),
+  ],
+  pricing: t('mini ≈ $0,18/ч, gpt-4o-transcribe и whisper-1 ≈ $0,36/ч', 'mini ≈ $0.18/h, gpt-4o-transcribe and whisper-1 ≈ $0.36/h'),
+  card: 'yes',
   keyUrl: 'https://platform.openai.com/api-keys',
   signupUrl: 'https://platform.openai.com/signup',
   docsUrl: 'https://platform.openai.com/docs/guides/speech-to-text',
   keySteps: [
-    'Войдите на https://platform.openai.com',
-    'Пополните баланс: Settings → Billing → Add to credit balance (от $5).',
-    'Откройте https://platform.openai.com/api-keys → «Create new secret key», скопируйте и вставьте ниже.',
+    t('Войдите на https://platform.openai.com', 'Sign in at https://platform.openai.com'),
+    t('Пополните баланс: Settings → Billing → Add to credit balance (от $5).', 'Top up: Settings → Billing → Add to credit balance ($5 minimum).'),
+    t(
+      'Откройте https://platform.openai.com/api-keys → «Create new secret key», скопируйте и вставьте ниже.',
+      'Open https://platform.openai.com/api-keys → “Create new secret key”, copy it and paste it below.',
+    ),
   ],
   keyPlaceholder: 'sk-…',
   maxBytes: 25 * 1024 ** 2,
@@ -33,21 +46,21 @@ export const openai: Provider = {
     {
       kind: 'select',
       id: 'model',
-      label: 'Модель',
+      label: L_MODEL,
       default: 'gpt-4o-transcribe',
       options: [
-        { value: 'gpt-4o-transcribe', label: 'gpt-4o-transcribe — самая точная (без таймкодов)' },
-        { value: 'gpt-4o-mini-transcribe', label: 'gpt-4o-mini-transcribe — вдвое дешевле' },
-        { value: 'gpt-4o-transcribe-diarize', label: 'gpt-4o-transcribe-diarize — со спикерами' },
-        { value: 'whisper-1', label: 'whisper-1 — с таймкодами' },
+        { value: 'gpt-4o-transcribe', label: t('gpt-4o-transcribe — самая точная (без таймкодов)', 'gpt-4o-transcribe — most accurate (no timestamps)') },
+        { value: 'gpt-4o-mini-transcribe', label: t('gpt-4o-mini-transcribe — вдвое дешевле', 'gpt-4o-mini-transcribe — half the price') },
+        { value: 'gpt-4o-transcribe-diarize', label: t('gpt-4o-transcribe-diarize — со спикерами', 'gpt-4o-transcribe-diarize — with speakers') },
+        { value: 'whisper-1', label: t('whisper-1 — с таймкодами', 'whisper-1 — with timestamps') },
       ],
     },
-    { kind: 'select', id: 'language', label: 'Язык', default: 'auto', options: LANG_OPTIONS_WHISPER },
+    { kind: 'select', id: 'language', label: L_LANGUAGE, default: 'auto', options: LANG_OPTIONS_WHISPER },
     {
       kind: 'text',
       id: 'prompt',
-      label: 'Подсказка (prompt)',
-      hint: 'Термины и стиль. Не используется моделью diarize.',
+      label: t('Подсказка (prompt)', 'Prompt'),
+      hint: t('Термины и стиль. Не используется моделью diarize.', 'Terms and style. Not used by the diarize model.'),
       default: 'Разговор на русском с английскими терминами: deadline, feedback, pull request.',
       multiline: true,
     },
@@ -73,11 +86,11 @@ export const openai: Provider = {
     const { models, headers } = await openaiCheckKey(BASE, ctx)
     return {
       items: [
-        { label: 'Ключ', value: 'работает ✓' },
-        { label: 'Модели распознавания', value: models.filter((m) => /transcribe|whisper/.test(m)).join(', ') || '—' },
+        { label: tx(L_KEY), value: tx(L_KEY_OK) },
+        { label: tx(t('Модели распознавания', 'Transcription models')), value: models.filter((m) => /transcribe|whisper/.test(m)).join(', ') || '—' },
         ...Object.entries(headers ?? {}).map(([label, value]) => ({ label, value })),
       ],
-      note: 'Баланс — platform.openai.com/settings/organization/billing',
+      note: tx(t('Баланс — platform.openai.com/settings/organization/billing', 'Balance: platform.openai.com/settings/organization/billing')),
     }
   },
 }

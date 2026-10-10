@@ -1,3 +1,4 @@
+import type { Lang } from '@/lib/i18n'
 import type { SettingValues, TranscriptResult } from '@/providers/types'
 
 const PREFIX = 'bbt:'
@@ -49,6 +50,8 @@ export interface Prefs {
   corsProxy: string
   useProxyFor: Record<string, boolean>
   theme: 'light' | 'dark' | 'system'
+  /** Язык интерфейса; не задан — определяется по браузеру. */
+  lang?: Lang
 }
 
 export const defaultPrefs: Prefs = {

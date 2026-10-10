@@ -23,9 +23,11 @@ const url = `http://127.0.0.1:${server.address().port}/`
 
 const browser = await chromium.launch({ args: ['--disable-gpu', '--no-sandbox'] })
 let failed = 0
-const cases = Object.entries(mocks).filter(([id]) => !only.length || only.includes(id))
+const cases = Object.entries(mocks).filter(([key]) => !only.length || only.includes(key) || only.includes(key.split('@')[0]))
 
-for (const [id, mock] of cases) {
+for (const [key, mock] of cases) {
+  // 'gemini@en' — тот же сервис, но интерфейс на английском
+  const [id, lang = 'ru'] = key.split('@')
   for (const file of mock.files ?? ['short.wav']) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
     const calls = []
@@ -37,25 +39,25 @@ for (const [id, mock] of cases) {
       calls.push({ method: req.method(), url: req.url(), headers: req.headers(), size: req.postDataBuffer()?.length ?? 0 })
       await route.fulfill(await mock.respond(req, calls.length))
     })
-    await page.addInitScript(([id, key]) => {
-      localStorage.setItem('bbt:prefs', JSON.stringify({ provider: id, prepare: 'mp3', corsProxy: '', useProxyFor: {}, theme: 'light' }))
+    await page.addInitScript(([id, key, lang]) => {
+      localStorage.setItem('bbt:prefs', JSON.stringify({ provider: id, prepare: 'mp3', corsProxy: '', useProxyFor: {}, theme: 'light', lang }))
       localStorage.setItem(`bbt:key:${id}`, JSON.stringify(key))
-    }, [id, mock.key ?? 'test-key'])
+    }, [id, mock.key ?? 'test-key', lang])
     await page.goto(url)
     await page.setInputFiles('input[type=file]', join(fixtures, file))
     await page.getByText(/^\d+:\d\d$/).first().waitFor({ timeout: 20000 })
-    await page.getByRole('button', { name: /Распознать через/ }).click()
+    await page.getByRole('button', { name: /Распознать через|Transcribe with/ }).click()
     const ok = await Promise.race([
-      page.getByText('Результат', { exact: true }).waitFor({ timeout: 600000 }).then(() => true),
-      page.getByText('Не получилось').waitFor({ timeout: 600000 }).then(() => false),
+      page.getByText(/^(Результат|Result)$/).waitFor({ timeout: 600000 }).then(() => true),
+      page.getByText(/^(Не получилось|Something went wrong)$/).waitFor({ timeout: 600000 }).then(() => false),
     ])
-    const text = ok ? await page.locator('textarea[aria-label="Текст транскрибации"]').inputValue() : await page.locator('[role=alert]').innerText()
+    const text = ok ? await page.locator('textarea[aria-label="Текст транскрибации"], textarea[aria-label="Transcript text"]').inputValue() : await page.locator('[role=alert]').innerText()
     const check = ok && mock.expect ? mock.expect({ text, calls }) : ok
     const status = check === true ? 'PASS' : 'FAIL'
     if (status === 'FAIL') failed++
-    console.log(`${status} ${id} ${file}: ${calls.length} req, text=${JSON.stringify(text.slice(0, 120))}${typeof check === 'string' ? ' — ' + check : ''}`)
+    console.log(`${status} ${key} ${file}: ${calls.length} req, text=${JSON.stringify(text.slice(0, 120))}${typeof check === 'string' ? ' — ' + check : ''}`)
     if (errors.length) console.log('  page errors:', errors)
-    if (process.env.SHOT) await page.screenshot({ path: `${process.env.SHOT}/${id}-${file}.png`, fullPage: true })
+    if (process.env.SHOT) await page.screenshot({ path: `${process.env.SHOT}/${key}-${file}.png`, fullPage: true })
     await page.close()
   }
 }

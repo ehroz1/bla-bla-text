@@ -5,7 +5,7 @@ Thanks for helping! The most valuable contributions are:
 - **Provider updates.** Free tiers, models and endpoints change often. A PR with a source link is very welcome.
 - **Bug reports with a repro**: browser, file type and size, provider, and the error text shown in the app.
 - **New providers**, especially ones with good Russian, English or Kazakh support and a free tier.
-- **An English UI.** The interface is Russian-only today. Please open an issue first to agree on an i18n approach.
+- **Translations.** The UI ships in English and Russian. A Kazakh interface would be a great addition; open an issue first.
 
 ## Development setup
 
@@ -50,7 +50,7 @@ Each provider is one file in `src/providers/` implementing the `Provider` interf
 7. **Add the API host** to `ALLOWED_HOSTS` in `proxy/cloudflare-worker.js` so the optional CORS proxy can reach it.
 8. **Update** the provider tables in `README.md` and `README.ru.md`, and `docs/stt-apis.md` if you have sources.
 
-UI text is in Russian; please keep new provider descriptions in Russian too, for consistency.
+All user-facing text is bilingual. Write it as `t('Русский текст', 'English text')` from `src/lib/i18n.ts` and render it with `tx(...)`. Plain strings are fine for names and examples that read the same in both languages.
 
 ## Pull requests
 

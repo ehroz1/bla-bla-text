@@ -1,6 +1,7 @@
 // Общая реализация для API, совместимых с OpenAI /v1/audio/transcriptions (OpenAI, Groq, Mistral…).
 import { langOrUndefined, pickRateHeaders, requestJson } from './http'
 import type { ProviderContext, Segment, TranscriptResult } from './types'
+import { t, tx } from '@/lib/i18n'
 
 interface VerboseJson {
   text: string
@@ -35,7 +36,7 @@ export async function openaiTranscribe(
   if (opts.responseFormat === 'verbose_json') form.append('timestamp_granularities[]', 'segment')
   for (const [k, v] of Object.entries(opts.extra ?? {})) form.append(k, v)
 
-  ctx.onStatus('Распознаю…')
+  ctx.onStatus(tx(t('Распознаю…', 'Transcribing…')))
   const { data, res } = await requestJson<VerboseJson>(ctx, `${baseUrl}/audio/transcriptions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${ctx.apiKey}` },

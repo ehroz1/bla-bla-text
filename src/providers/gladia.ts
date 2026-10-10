@@ -1,6 +1,8 @@
 import { poll, requestJson } from './http'
 import { segmentsToText, speakerName } from './segments'
 import type { Provider } from './types'
+import { t, tf, tx } from '@/lib/i18n'
+import { L_DIARIZE, L_KEY, L_KEY_OK } from './langs'
 
 const BASE = 'https://api.gladia.io/v2'
 
@@ -30,24 +32,36 @@ interface GladiaJob {
 export const gladia: Provider = {
   id: 'gladia',
   name: 'Gladia',
-  vendor: 'Gladia (Франция)',
-  tagline: 'Явный code-switching для RU+EN и KZ+RU: каждая фраза помечается своим языком. €50 на старте.',
-  description:
+  vendor: t('Gladia (Франция)', 'Gladia (France)'),
+  tagline: t(
+    'Явный code-switching для RU+EN и KZ+RU: каждая фраза помечается своим языком. €50 на старте.',
+    'Explicit code-switching for RU+EN and KZ+RU: each phrase is tagged with its language. €50 to start.',
+  ),
+  description: t(
     'Gladia — французский API на базе доработанного Whisper (модель Solaria-1, 100+ языков, включая казахский). Главная фишка — режим code-switching: вы указываете языки разговора (например, ru+en или kk+ru), и сервис определяет язык каждой фразы. Спикеры, словарь терминов. Бесплатно — разовые €50 кредитов.',
+    'Gladia is a French API built on an improved Whisper (the Solaria-1 model, 100+ languages including Kazakh). Its highlight is code-switching: you list the conversation languages (e.g. ru+en or kk+ru) and the service detects the language of each phrase. Speakers, custom vocabulary. Free: one-time €50 of credits.',
+  ),
   langs: { ru: 2, en: 3, kk: 2, mix: 3 },
-  free: '€50 при регистрации',
-  limits: ['Free: разовые €50 кредитов', 'До 3 одновременных задач', 'Файл до 1 ГБ и до 135 минут (длиннее — режем на части)'],
-  pricing: 'Starter ≈ $0,61/ч',
-  card: 'не нужна',
+  free: t('€50 при регистрации', '€50 on sign-up'),
+  limits: [
+    t('Free: разовые €50 кредитов', 'Free: one-time €50 of credits'),
+    t('До 3 одновременных задач', 'Up to 3 concurrent jobs'),
+    t('Файл до 1 ГБ и до 135 минут (длиннее — режем на части)', 'Files up to 1 GB and 135 minutes (longer files are split)'),
+  ],
+  pricing: t('Starter ≈ $0,61/ч', 'Starter ≈ $0.61/h'),
+  card: 'no',
   keyUrl: 'https://app.gladia.io/apikeys',
   signupUrl: 'https://app.gladia.io/auth/signup',
   docsUrl: 'https://docs.gladia.io/chapters/pre-recorded-stt/getting-started',
   keySteps: [
-    'Зарегистрируйтесь на https://app.gladia.io (проще всего через Google).',
-    'Откройте https://app.gladia.io/apikeys — ключ по умолчанию уже есть, или нажмите «Generate new API key».',
-    'Скопируйте ключ и вставьте ниже.',
+    t('Зарегистрируйтесь на https://app.gladia.io (проще всего через Google).', 'Sign up at https://app.gladia.io (Google is the quickest).'),
+    t(
+      'Откройте https://app.gladia.io/apikeys — ключ по умолчанию уже есть, или нажмите «Generate new API key».',
+      'Open https://app.gladia.io/apikeys — a default key already exists, or click “Generate new API key”.',
+    ),
+    t('Скопируйте ключ и вставьте ниже.', 'Copy the key and paste it below.'),
   ],
-  keyPlaceholder: 'ключ Gladia (UUID)',
+  keyPlaceholder: 'Gladia API key (UUID)',
   maxBytes: 1000 * 1024 ** 2,
   maxChunkSeconds: 130 * 60,
   cors: 'unknown',
@@ -56,23 +70,23 @@ export const gladia: Provider = {
     {
       kind: 'select',
       id: 'languages',
-      label: 'Языки разговора',
+      label: t('Языки разговора', 'Conversation languages'),
       default: 'ru-en',
       options: [
-        { value: 'ru-en', label: 'Русский + английский' },
-        { value: 'kk-ru', label: 'Казахский + русский' },
-        { value: 'kk-ru-en', label: 'Казахский + русский + английский' },
-        { value: 'ru', label: 'Только русский' },
-        { value: 'en', label: 'Только английский' },
-        { value: 'kk', label: 'Только казахский' },
+        { value: 'ru-en', label: t('Русский + английский', 'Russian + English') },
+        { value: 'kk-ru', label: t('Казахский + русский', 'Kazakh + Russian') },
+        { value: 'kk-ru-en', label: t('Казахский + русский + английский', 'Kazakh + Russian + English') },
+        { value: 'ru', label: t('Только русский', 'Russian only') },
+        { value: 'en', label: t('Только английский', 'English only') },
+        { value: 'kk', label: t('Только казахский', 'Kazakh only') },
       ],
     },
-    { kind: 'toggle', id: 'diarize', label: 'Разделять спикеров', default: true },
+    { kind: 'toggle', id: 'diarize', label: L_DIARIZE, default: true },
     {
       kind: 'text',
       id: 'vocabulary',
-      label: 'Словарь терминов',
-      hint: 'Через запятую — имена, бренды, жаргон.',
+      label: t('Словарь терминов', 'Custom vocabulary'),
+      hint: t('Через запятую — имена, бренды, жаргон.', 'Comma-separated: names, brands, jargon.'),
       default: '',
       placeholder: 'Kaspi, Айгерим, deploy, Jira',
     },
@@ -80,7 +94,7 @@ export const gladia: Provider = {
   async transcribe(file, fileName, ctx) {
     const s = ctx.settings
     const auth = { 'x-gladia-key': ctx.apiKey }
-    ctx.onStatus('Загружаю файл…')
+    ctx.onStatus(tx(t('Загружаю файл…', 'Uploading the file…')))
     const form = new FormData()
     form.append('audio', file, fileName)
     const { data: up } = await requestJson<{ audio_url: string }>(ctx, `${BASE}/upload`, { method: 'POST', headers: auth, body: form })
@@ -106,7 +120,8 @@ export const gladia: Provider = {
     })
     const done = await poll<GladiaJob>(ctx, async () => {
       const { data } = await requestJson<GladiaJob>(ctx, `${BASE}/pre-recorded/${job.id}`, { headers: auth })
-      if (data.status === 'error') throw new Error(`Gladia вернула ошибку (код ${data.error_code ?? '—'})`)
+      if (data.status === 'error')
+        throw new Error(tf(t('Gladia вернула ошибку (код {c})', 'Gladia returned an error (code {c})'), { c: data.error_code ?? '—' }))
       return { done: data.status === 'done', value: data, status: data.status }
     })
     const tr = done.result?.transcription
@@ -130,10 +145,10 @@ export const gladia: Provider = {
     })
     return {
       items: [
-        { label: 'Ключ', value: 'работает ✓' },
-        ...(data.total != null ? [{ label: 'Всего расшифровок', value: String(data.total) }] : []),
+        { label: tx(L_KEY), value: tx(L_KEY_OK) },
+        ...(data.total != null ? [{ label: tx(t('Всего расшифровок', 'Total transcripts')), value: String(data.total) }] : []),
       ],
-      note: 'Остаток кредитов — в кабинете app.gladia.io → Billing.',
+      note: tx(t('Остаток кредитов — в кабинете app.gladia.io → Billing.', 'Remaining credits: app.gladia.io → Billing.')),
     }
   },
 }

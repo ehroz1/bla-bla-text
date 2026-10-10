@@ -1,6 +1,7 @@
 import { Input, Label, NativeSelect, Textarea } from '@/components/ui/input'
 import { Switch } from '@/components/ui/misc'
 import type { Provider, SettingValues } from '@/providers/types'
+import { t, tx } from '@/lib/i18n'
 
 export function defaultSettings(p: Provider): SettingValues {
   return Object.fromEntries(p.settings.map((s) => [s.id, s.default]))
@@ -17,23 +18,23 @@ export function SettingsStep({
   onChange: (v: SettingValues) => void
   disabled?: boolean
 }) {
-  if (!provider.settings.length) return <p className="text-sm text-muted-foreground">У этого сервиса нет настроек.</p>
+  if (!provider.settings.length) return <p className="text-sm text-muted-foreground">{tx(t('У этого сервиса нет настроек.', 'This service has no settings.'))}</p>
   const set = (id: string, v: string | number | boolean) => onChange({ ...values, [id]: v })
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {provider.settings.map((s) => {
         const id = `set-${provider.id}-${s.id}`
         const v = values[s.id] ?? s.default
-        const hint = s.hint && <p className="text-xs text-muted-foreground">{s.hint}</p>
+        const hint = s.hint && <p className="text-xs text-muted-foreground">{tx(s.hint)}</p>
         switch (s.kind) {
           case 'select':
             return (
               <div key={s.id} className="grid content-start gap-2">
-                <Label htmlFor={id}>{s.label}</Label>
+                <Label htmlFor={id}>{tx(s.label)}</Label>
                 <NativeSelect id={id} value={String(v)} disabled={disabled} onChange={(e) => set(s.id, e.target.value)}>
                   {s.options.map((o) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {tx(o.label)}
                     </option>
                   ))}
                 </NativeSelect>
@@ -44,7 +45,7 @@ export function SettingsStep({
             return (
               <div key={s.id} className="flex items-start justify-between gap-3 self-start rounded-lg border p-3">
                 <div className="grid gap-1">
-                  <Label htmlFor={id}>{s.label}</Label>
+                  <Label htmlFor={id}>{tx(s.label)}</Label>
                   {hint}
                 </div>
                 <Switch id={id} checked={Boolean(v)} disabled={disabled} onCheckedChange={(c) => set(s.id, c)} />
@@ -53,7 +54,7 @@ export function SettingsStep({
           case 'number':
             return (
               <div key={s.id} className="grid content-start gap-2">
-                <Label htmlFor={id}>{s.label}</Label>
+                <Label htmlFor={id}>{tx(s.label)}</Label>
                 <Input
                   id={id}
                   type="number"
@@ -70,7 +71,7 @@ export function SettingsStep({
           case 'text':
             return (
               <div key={s.id} className="grid content-start gap-2 sm:col-span-2">
-                <Label htmlFor={id}>{s.label}</Label>
+                <Label htmlFor={id}>{tx(s.label)}</Label>
                 {s.multiline ? (
                   <Textarea id={id} value={String(v)} placeholder={s.placeholder} disabled={disabled} onChange={(e) => set(s.id, e.target.value)} />
                 ) : (

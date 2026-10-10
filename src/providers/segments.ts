@@ -1,4 +1,5 @@
 import type { Segment } from './types'
+import { t, tx } from '@/lib/i18n'
 
 export interface TimedWord {
   text: string
@@ -57,11 +58,12 @@ export function segmentsToText(segments: Segment[]): string {
   return text.trim()
 }
 
-/** "speaker_0" / 0 / "S1" / "A" -> "Спикер N". `base` — с какого числа сервис нумерует спикеров. */
+/** "speaker_0" / 0 / "S1" / "A" -> "Спикер N" / "Speaker N". `base` — с какого числа сервис нумерует спикеров. */
 export function speakerName(id: string | number | undefined | null, base: 0 | 1 = 0): string | undefined {
   if (id == null || id === '') return undefined
   const s = String(id)
-  if (/^[A-Z]$/.test(s)) return `Спикер ${s.charCodeAt(0) - 64}`
+  const word = tx(t('Спикер', 'Speaker'))
+  if (/^[A-Z]$/.test(s)) return `${word} ${s.charCodeAt(0) - 64}`
   const m = s.match(/(\d+)$/)
-  return m ? `Спикер ${Number(m[1]) - base + 1}` : `Спикер ${s}`
+  return m ? `${word} ${Number(m[1]) - base + 1}` : `${word} ${s}`
 }

@@ -23,11 +23,10 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/main.png" width="860" alt="Main screen: an uploaded audio file, the service picker and the Groq Whisper card with free-tier limits and key instructions">
+  <img src="docs/assets/en/main.png" width="860" alt="Main screen: an uploaded audio file, the service picker and the Groq Whisper card with free-tier limits and key instructions">
 </p>
 
-> [!NOTE]
-> The app interface is in **Russian** for now. The workflow is simple (file → service → key → settings → text), and this README explains every step in English.
+The interface is available in **English and Russian**: use the **EN / RU** button in the header. By default it follows your browser language.
 
 ## Why
 
@@ -49,10 +48,10 @@ BLA-БЛА puts 11 services behind one page:
 - **Usage and limits**: a "check key & balance" button calls the provider where its API allows it (see table). A local counter tracks minutes transcribed today and this month.
 - **Results**: edit the text in place, copy it, or download TXT, Markdown, SRT, VTT or JSON. The last 30 transcripts stay in local history.
 - **CORS proxy option** for providers that block direct browser calls: a tiny Cloudflare Worker you deploy yourself.
-- Light and dark theme, mobile layout, shadcn/ui-style design.
+- **English and Russian interface**, light and dark theme, mobile layout, shadcn/ui-style design.
 
 <p align="center">
-  <img src="docs/assets/result.png" width="760" alt="Result view: transcript with timestamps and speaker labels, plus TXT, MD, SRT, VTT and JSON download buttons">
+  <img src="docs/assets/en/result.png" width="760" alt="Result view: transcript with timestamps and speaker labels, plus TXT, MD, SRT, VTT and JSON download buttons">
   <br><sub>Result view. The transcript shown is a sample response from the test suite's mocked API, not real service output.</sub>
 </p>
 
@@ -86,7 +85,7 @@ Quality dots are an editorial estimate based on vendor documentation and public 
 2. Drop an audio or video file onto the first card.
 3. Pick a service. Its card shows how to get a free key, with links.
 4. Paste the key. It is saved in this browser only.
-5. Adjust settings if needed and press **«Распознать через …»** ("Transcribe with …").
+5. Adjust settings if needed and press **Transcribe with …**.
 
 Prefer offline? Download [`bla-bla.html`](https://ehroz1.github.io/bla-bla-text/bla-bla.html). It's the whole app in one file and works when opened from disk (the speech APIs still need internet).
 
@@ -131,7 +130,7 @@ npm run test:e2e                  # or: node tests/e2e.mjs tests/fixtures groq g
 
 ## CORS proxy (Deepgram, Yandex)
 
-Some APIs refuse requests made directly from a web page. For those, deploy [`proxy/cloudflare-worker.js`](proxy/cloudflare-worker.js) as a free Cloudflare Worker (instructions are in the file and on the app's **«Настройки»** / Settings tab), paste its URL into the app, and enable it per service.
+Some APIs refuse requests made directly from a web page. For those, deploy [`proxy/cloudflare-worker.js`](proxy/cloudflare-worker.js) as a free Cloudflare Worker (instructions are in the file and on the app's **Settings** tab), paste its URL into the app, and enable it per service.
 
 > [!WARNING]
 > Your API key passes through the proxy. Only use a proxy you deployed yourself. Set `ALLOWED_ORIGIN` in the worker to your site's origin so others can't reuse it.
@@ -140,7 +139,7 @@ Some APIs refuse requests made directly from a web page. For those, deploy [`pro
 
 - **Where data goes:** the media file goes only to the provider you choose. Keys, settings, history and usage counters live in `localStorage` in your browser. The page also loads its font from Google Fonts.
 - **Provider data policies:** some free tiers may use your data for training. The in-app cards point this out for Gemini and Mistral. Check each provider's terms before uploading sensitive recordings.
-- **`localStorage` is not a vault:** anyone with access to your browser profile can read stored keys. Use the trash button or **Settings → Стереть всё** ("Erase everything") on shared machines.
+- **`localStorage` is not a vault:** anyone with access to your browser profile can read stored keys. Use the trash button or **Settings → Erase everything** on shared machines.
 - **Browser support:** audio processing relies on WebCodecs, with a Web Audio fallback. Automated tests run in headless Chromium. Other browsers haven't been tested systematically; open-source Chromium builds can't decode AAC (mp4/m4a), in which case the original file is uploaded.
 - **Long files take time:** MP3 encoding is CPU-bound. In the test VM, compressing a 40-minute file took about 2.5 minutes.
 - **Approximate timestamps:** Gemini is a language model, not a dedicated recognizer, so its timestamps are estimates.
@@ -150,7 +149,7 @@ Some APIs refuse requests made directly from a web page. For those, deploy [`pro
 
 | Symptom | Likely cause and fix |
 |---|---|
-| "Браузер не смог отправить запрос…" (network error) | The provider blocks browser calls (CORS), an ad blocker or VPN interfered, or you're offline. Try the CORS proxy. |
+| "The browser could not send the request…" | The provider blocks browser calls (CORS), an ad blocker or VPN interfered, or you're offline. Try the CORS proxy. |
 | `401` | Key copied incompletely or revoked. Paste it again. |
 | `403` | Key lacks permissions, or the service is unavailable in your region (e.g. ElevenLabs and Gemini in some countries). |
 | `429` | Rate limit or quota reached. Wait, or switch provider. |
@@ -164,6 +163,7 @@ src/
   lib/audio.ts      in-browser extraction, compression and chunking (mediabunny)
   lib/run.ts        prepare → transcribe each chunk → merge
   components/       UI (shadcn/ui-style components in components/ui)
+  lib/i18n.ts       English/Russian strings: t('ru', 'en') + tx()
 proxy/              optional Cloudflare Worker CORS proxy
 tests/              Playwright end-to-end test with mocked provider responses
 docs/               provider research, public-apis review, README screenshots

@@ -1,6 +1,7 @@
 import { poll, request, requestJson } from './http'
 import { segmentsToText } from './segments'
 import type { Provider, Segment } from './types'
+import { t, tx } from '@/lib/i18n'
 
 const STT = 'https://stt.api.cloud.yandex.net/stt/v3'
 const OPS = 'https://operation.api.cloud.yandex.net/operations'
@@ -42,28 +43,42 @@ export const yandex: Provider = {
   id: 'yandex',
   name: 'Yandex SpeechKit',
   vendor: 'Yandex Cloud',
-  tagline: 'Сильный русский и казахский (kk-KZ), автоопределение языка. Нужен CORS-прокси.',
-  description:
+  tagline: t(
+    'Сильный русский и казахский (kk-KZ), автоопределение языка. Нужен CORS-прокси.',
+    'Strong Russian and Kazakh (kk-KZ), language auto-detection. Needs a CORS proxy.',
+  ),
+  description: t(
     'SpeechKit от Yandex Cloud — один из лучших распознавателей для русского языка, отдельно поддерживает казахский (kk-KZ) и умеет определять язык каждой фразы. Работает в Казахстане (yandex.cloud/kz). Минусы: регистрация сложнее (платёжный аккаунт, сервисный аккаунт) и API не пускает запросы из браузера — нужен свой CORS-прокси. Новым пользователям Yandex Cloud даёт стартовый грант.',
+    'Yandex Cloud SpeechKit is one of the best recognizers for Russian, separately supports Kazakh (kk-KZ) and can detect the language of each phrase. Available in Kazakhstan (yandex.cloud/kz). Downsides: sign-up is more involved (billing account, service account) and the API rejects browser requests — you need your own CORS proxy. New Yandex Cloud users get a starter grant.',
+  ),
   langs: { ru: 3, en: 2, kk: 3, mix: 2 },
-  free: 'Стартовый грант Yandex Cloud',
+  free: t('Стартовый грант Yandex Cloud', 'Yandex Cloud starter grant'),
   limits: [
-    'Новым аккаунтам — стартовый грант (сумма и срок — на странице yandex.cloud/ru/docs/getting-started/free-trial)',
-    'Нужен платёжный аккаунт (карта привязывается, списаний в рамках гранта нет)',
-    'Файл до 10 МБ на запрос в этом режиме — BLA-БЛА режет на части',
-    'Только через свой CORS-прокси',
+    t(
+      'Новым аккаунтам — стартовый грант (сумма и срок — на странице yandex.cloud/ru/docs/getting-started/free-trial)',
+      'New accounts get a starter grant (amount and duration: yandex.cloud/en/docs/getting-started/free-trial)',
+    ),
+    t('Нужен платёжный аккаунт (карта привязывается, списаний в рамках гранта нет)', 'A billing account is required (a card is linked, but nothing is charged within the grant)'),
+    t('Файл до 10 МБ на запрос в этом режиме — BLA-БЛА режет на части', 'Up to 10 MB per request in this mode — BLA-БЛА splits files into parts'),
+    t('Только через свой CORS-прокси', 'Only through your own CORS proxy'),
   ],
-  pricing: 'Асинхронное распознавание ≈ 0,15–0,20 ₽ за 15 секунд',
-  card: 'нужна (без списания)',
+  pricing: t('Асинхронное распознавание ≈ 0,15–0,20 ₽ за 15 секунд', 'Async recognition ≈ 0.15–0.20 ₽ per 15 seconds'),
+  card: 'hold',
   keyUrl: 'https://console.yandex.cloud/',
   signupUrl: 'https://yandex.cloud/ru/docs/billing/quickstart/',
   docsUrl: 'https://yandex.cloud/ru/docs/speechkit/stt/api/transcribation-api-v3',
   keySteps: [
-    'Войдите в https://console.yandex.cloud (Яндекс ID) и создайте платёжный аккаунт — активируется стартовый грант.',
-    'В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-stt.user.',
-    'Откройте сервисный аккаунт → «Создать новый ключ» → «API-ключ» (область действия yc.ai.speechkitStt.execute).',
-    'Скопируйте секретную часть ключа (AQVN…) и вставьте ниже.',
-    'Разверните CORS-прокси (вкладка «Настройки») и включите его для Yandex.',
+    t(
+      'Войдите в https://console.yandex.cloud (Яндекс ID) и создайте платёжный аккаунт — активируется стартовый грант.',
+      'Sign in to https://console.yandex.cloud (Yandex ID) and create a billing account — the starter grant is activated.',
+    ),
+    t('В каталоге: «Сервисные аккаунты» → «Создать», роль ai.speechkit-stt.user.', 'In your folder: “Service accounts” → “Create”, role ai.speechkit-stt.user.'),
+    t(
+      'Откройте сервисный аккаунт → «Создать новый ключ» → «API-ключ» (область действия yc.ai.speechkitStt.execute).',
+      'Open the service account → “Create new key” → “API key” (scope yc.ai.speechkitStt.execute).',
+    ),
+    t('Скопируйте секретную часть ключа (AQVN…) и вставьте ниже.', 'Copy the secret part of the key (AQVN…) and paste it below.'),
+    t('Разверните CORS-прокси (вкладка «Настройки») и включите его для Yandex.', 'Deploy the CORS proxy (Settings tab) and enable it for Yandex.'),
   ],
   keyPlaceholder: 'AQVN…',
   maxBytes: 10 * 1024 ** 2,
@@ -73,25 +88,31 @@ export const yandex: Provider = {
     {
       kind: 'select',
       id: 'languages',
-      label: 'Языки',
+      label: t('Языки', 'Languages'),
       default: 'kk-ru',
       options: [
-        { value: 'kk-ru', label: 'Казахский + русский' },
-        { value: 'ru-en', label: 'Русский + английский' },
-        { value: 'auto', label: 'Авто (любой язык)' },
-        { value: 'ru', label: 'Русский' },
-        { value: 'kk', label: 'Казахский' },
+        { value: 'kk-ru', label: t('Казахский + русский', 'Kazakh + Russian') },
+        { value: 'ru-en', label: t('Русский + английский', 'Russian + English') },
+        { value: 'auto', label: t('Авто (любой язык)', 'Auto (any language)') },
+        { value: 'ru', label: t('Русский', 'Russian') },
+        { value: 'kk', label: t('Казахский', 'Kazakh') },
       ],
     },
-    { kind: 'toggle', id: 'literature', label: 'Литературная запись', hint: 'Пунктуация, цифры, без «э-э».', default: true },
-    { kind: 'toggle', id: 'profanity', label: 'Скрывать мат', default: false },
+    {
+      kind: 'toggle',
+      id: 'literature',
+      label: t('Литературная запись', 'Literary formatting'),
+      hint: t('Пунктуация, цифры, без «э-э».', 'Punctuation, digits, no “uh”.'),
+      default: true,
+    },
+    { kind: 'toggle', id: 'profanity', label: t('Скрывать мат', 'Mask profanity'), default: false },
   ],
   async transcribe(file, _name, ctx) {
     const s = ctx.settings
     const auth = { Authorization: `Api-Key ${ctx.apiKey}` }
     const containerAudioType = file.type.includes('wav') ? 'WAV' : file.type.includes('ogg') ? 'OGG_OPUS' : 'MP3'
     const codes = LANGS[String(s.languages)] ?? []
-    ctx.onStatus('Кодирую аудио…')
+    ctx.onStatus(tx(t('Кодирую аудио…', 'Encoding audio…')))
     const content = await blobToBase64(file)
     const body = {
       content,
@@ -107,7 +128,7 @@ export const yandex: Provider = {
         audioProcessingType: 'FULL_DATA',
       },
     }
-    ctx.onStatus('Отправляю…')
+    ctx.onStatus(tx(t('Отправляю…', 'Sending…')))
     const { data: op } = await requestJson<{ id: string }>(ctx, `${STT}/recognizeFileAsync`, {
       method: 'POST',
       headers: { ...auth, 'Content-Type': 'application/json' },
@@ -116,7 +137,7 @@ export const yandex: Provider = {
     await poll(ctx, async () => {
       const { data } = await requestJson<{ done?: boolean; error?: { message?: string } }>(ctx, `${OPS}/${op.id}`, { headers: auth })
       if (data.error) throw new Error(`SpeechKit: ${data.error.message}`)
-      return { done: !!data.done, status: data.done ? 'готово' : 'в очереди' }
+      return { done: !!data.done, status: data.done ? tx(t('готово', 'done')) : tx(t('в очереди', 'queued')) }
     })
     const res = await request(ctx, `${STT}/getRecognition?operationId=${encodeURIComponent(op.id)}`, { headers: auth })
     const raw = await res.text()

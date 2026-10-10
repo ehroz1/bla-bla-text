@@ -6,6 +6,8 @@ import { Progress } from '@/components/ui/misc'
 import { store, usageThisMonth, usageToday } from '@/lib/storage'
 import { formatDuration } from '@/lib/utils'
 import type { LimitInfo, Provider } from '@/providers/types'
+import { t, tf, tx } from '@/lib/i18n'
+import { L_THIS_MONTH } from '@/providers/langs'
 
 export function KeyStep({
   provider,
@@ -24,7 +26,9 @@ export function KeyStep({
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
-        <Label htmlFor="api-key">API-ключ {provider.name}</Label>
+        <Label htmlFor="api-key">
+          {tx(t('API-ключ', 'API key'))} {provider.name}
+        </Label>
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Input
@@ -46,7 +50,7 @@ export function KeyStep({
               type="button"
               onClick={() => setShow((s) => !s)}
               className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label={show ? 'Скрыть ключ' : 'Показать ключ'}
+              aria-label={show ? tx(t('Скрыть ключ', 'Hide key')) : tx(t('Показать ключ', 'Show key'))}
             >
               {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
@@ -55,8 +59,8 @@ export function KeyStep({
             <Button
               variant="outline"
               size="icon"
-              aria-label="Удалить ключ"
-              title="Удалить ключ из браузера"
+              aria-label={tx(t('Удалить ключ', 'Delete key'))}
+              title={tx(t('Удалить ключ из браузера', 'Delete the key from this browser'))}
               onClick={() => {
                 onKey('')
                 store.setKey(provider.id, '')
@@ -67,9 +71,15 @@ export function KeyStep({
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          Ключ хранится только в этом браузере (localStorage) и отправляется напрямую в {provider.vendor}. Нет ключа?{' '}
+          {tf(
+            t(
+              'Ключ хранится только в этом браузере (localStorage) и отправляется напрямую в {v}. Нет ключа?',
+              'The key is stored only in this browser (localStorage) and sent directly to {v}. No key yet?',
+            ),
+            { v: tx(provider.vendor) },
+          )}{' '}
           <a href={provider.keyUrl} target="_blank" rel="noreferrer noopener" className="font-medium text-foreground underline underline-offset-4">
-            Получить бесплатно →
+            {provider.card === 'no' ? tx(t('Получить бесплатно →', 'Get one for free →')) : tx(t('Получить ключ →', 'Get a key →'))}
           </a>
         </p>
       </div>
@@ -108,16 +118,16 @@ export function LimitsPanel({
     <div className="space-y-3 rounded-lg border p-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-medium">
-          <Gauge className="size-4" /> Лимиты
+          <Gauge className="size-4" /> {tx(t('Лимиты', 'Limits'))}
         </div>
         {provider.checkLimits ? (
           <Button size="sm" variant="outline" disabled={!apiKey || state.loading} onClick={check}>
             {state.loading ? <Loader2 className="animate-spin" /> : <KeyRound />}
-            Проверить ключ и баланс
+            {tx(t('Проверить ключ и баланс', 'Check key & balance'))}
           </Button>
         ) : (
           <ButtonLink size="sm" variant="outline" href={provider.keyUrl}>
-            Смотреть в кабинете
+            {tx(t('Смотреть в кабинете', 'View in dashboard'))}
           </ButtonLink>
         )}
       </div>
@@ -125,15 +135,15 @@ export function LimitsPanel({
       {!compact && (
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="rounded-md bg-muted/60 p-2">
-            <div className="text-muted-foreground">Сегодня через BLA-БЛА</div>
+            <div className="text-muted-foreground">{tx(t('Сегодня через BLA-БЛА', 'Today via BLA-БЛА'))}</div>
             <div className="mt-0.5 font-medium">
-              {formatDuration(today.seconds)} · {today.requests} файл(ов)
+              {formatDuration(today.seconds)} · {tf(t('{n} файл(ов)', '{n} file(s)'), { n: today.requests })}
             </div>
           </div>
           <div className="rounded-md bg-muted/60 p-2">
-            <div className="text-muted-foreground">В этом месяце</div>
+            <div className="text-muted-foreground">{tx(L_THIS_MONTH)}</div>
             <div className="mt-0.5 font-medium">
-              {formatDuration(month.seconds)} · {month.requests} файл(ов)
+              {formatDuration(month.seconds)} · {tf(t('{n} файл(ов)', '{n} file(s)'), { n: month.requests })}
             </div>
           </div>
         </div>
@@ -158,7 +168,7 @@ export function LimitsPanel({
       {!compact && (
         <ul className="list-disc space-y-0.5 pl-5 text-xs text-muted-foreground">
           {provider.limits.map((l) => (
-            <li key={l}>{l}</li>
+            <li key={tx(l)}>{tx(l)}</li>
           ))}
         </ul>
       )}

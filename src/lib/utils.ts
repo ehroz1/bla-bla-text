@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { getLang } from '@/lib/i18n'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -7,10 +8,11 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes)) return '—'
-  if (bytes < 1024) return `${bytes} Б`
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} КБ`
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} МБ`
-  return `${(bytes / 1024 ** 3).toFixed(2)} ГБ`
+  const [b, kb, mb, gb] = getLang() === 'ru' ? ['Б', 'КБ', 'МБ', 'ГБ'] : ['B', 'KB', 'MB', 'GB']
+  if (bytes < 1024) return `${bytes} ${b}`
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} ${kb}`
+  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} ${mb}`
+  return `${(bytes / 1024 ** 3).toFixed(2)} ${gb}`
 }
 
 export function formatDuration(seconds: number | undefined): string {
@@ -25,13 +27,13 @@ export function formatDuration(seconds: number | undefined): string {
 
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) return reject(new DOMException('Отменено', 'AbortError'))
+    if (signal?.aborted) return reject(new DOMException('Cancelled', 'AbortError'))
     const t = setTimeout(resolve, ms)
     signal?.addEventListener(
       'abort',
       () => {
         clearTimeout(t)
-        reject(new DOMException('Отменено', 'AbortError'))
+        reject(new DOMException('Cancelled', 'AbortError'))
       },
       { once: true },
     )

@@ -226,3 +226,39 @@ Object.assign(mocks, {
     expect: ({ text }) => text === 'Привет, это gpt-4o.' || 'bad',
   },
 })
+
+// Тот же Gemini, но с английским интерфейсом: метки спикеров должны быть на английском.
+mocks['gemini@en'] = {
+  ...mocks.gemini,
+  files: ['short.wav'],
+  respond: (req) => {
+    const prompt = JSON.parse(req.postData()).contents[0].parts[1].text
+    const w = prompt.includes('"Speaker 1"') ? 'Speaker' : 'Спикер'
+    return json({
+      candidates: [
+        {
+          content: {
+            parts: [
+              {
+                text: JSON.stringify({
+                  segments: [
+                    { start: '00:00', end: '00:03', speaker: `${w} 1`, text: 'Привет, давай обсудим deadline.' },
+                    { start: '00:03', end: '00:06', speaker: `${w} 2`, text: 'Окей, sure.' },
+                  ],
+                }),
+              },
+            ],
+          },
+        },
+      ],
+    })
+  },
+  expect: ({ text }) => text.includes('Speaker 2: Окей') || 'expected English speaker labels: ' + JSON.stringify(text),
+}
+
+// Метки спикеров, которые строит само приложение (speakerName), тоже переводятся.
+mocks['elevenlabs@en'] = {
+  ...mocks.elevenlabs,
+  expect: ({ text }) =>
+    (text.includes('Speaker 1: Привет, team.') && text.includes('Speaker 2: Как дела?')) || 'bad: ' + JSON.stringify(text),
+}

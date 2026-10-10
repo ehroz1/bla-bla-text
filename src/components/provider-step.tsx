@@ -7,20 +7,22 @@ import { store } from '@/lib/storage'
 import { cn } from '@/lib/utils'
 import { providers } from '@/providers'
 import type { Provider } from '@/providers/types'
+import { t, type Text, tx } from '@/lib/i18n'
+import { CARD_TEXT } from '@/providers/langs'
 
 type Filter = 'all' | 'ru-en' | 'kk' | 'nocard'
 
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'Все' },
+const FILTERS: { value: Filter; label: Text }[] = [
+  { value: 'all', label: t('Все', 'All') },
   { value: 'ru-en', label: 'RU + EN' },
   { value: 'kk', label: 'Қазақша' },
-  { value: 'nocard', label: 'Без карты' },
+  { value: 'nocard', label: t('Без карты', 'No card') },
 ]
 
 function matches(p: Provider, f: Filter) {
   if (f === 'ru-en') return p.tags.includes('ru-en')
   if (f === 'kk') return p.tags.includes('kk')
-  if (f === 'nocard') return p.card === 'не нужна'
+  if (f === 'nocard') return p.card === 'no'
   return true
 }
 
@@ -37,7 +39,12 @@ export function ProviderPicker({
   const list = providers.filter((p) => matches(p, filter))
   return (
     <div className="space-y-3">
-      <Tabs value={filter} onValueChange={setFilter} items={FILTERS} className="w-full sm:w-fit" />
+      <Tabs
+        value={filter}
+        onValueChange={setFilter}
+        items={FILTERS.map((f) => ({ value: f.value, label: tx(f.label) }))}
+        className="w-full sm:w-fit"
+      />
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {list.map((p) => {
           const active = p.id === value
@@ -58,12 +65,12 @@ export function ProviderPicker({
                   <div className="flex items-center gap-1.5 font-medium">
                     {p.name}
                     {hasKey && (
-                      <span title="Ключ сохранён" className="text-success">
+                      <span title={tx(t('Ключ сохранён', 'Key saved'))} className="text-success">
                         <KeyRound className="size-3.5" />
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-muted-foreground">{p.vendor}</div>
+                  <div className="text-xs text-muted-foreground">{tx(p.vendor)}</div>
                 </div>
                 {active && (
                   <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-background">
@@ -71,18 +78,22 @@ export function ProviderPicker({
                   </span>
                 )}
               </div>
-              <div className="line-clamp-2 text-sm text-muted-foreground">{p.tagline}</div>
+              <div className="line-clamp-2 text-sm text-muted-foreground">{tx(p.tagline)}</div>
               <LangMeter provider={p} />
               <div className="flex flex-wrap gap-1">
-                <Badge variant="success">{p.free}</Badge>
-                {p.card !== 'не нужна' && <Badge variant="outline">карта {p.card}</Badge>}
-                {p.cors === 'no' && <Badge variant="warning">нужен прокси</Badge>}
+                <Badge variant="success">{tx(p.free)}</Badge>
+                {p.card !== 'no' && (
+                  <Badge variant="outline">
+                    {tx(t('карта', 'card'))} {tx(CARD_TEXT[p.card])}
+                  </Badge>
+                )}
+                {p.cors === 'no' && <Badge variant="warning">{tx(t('нужен прокси', 'needs proxy'))}</Badge>}
               </div>
             </button>
           )
         })}
       </div>
-      {list.length === 0 && <p className="text-sm text-muted-foreground">Нет сервисов под этот фильтр.</p>}
+      {list.length === 0 && <p className="text-sm text-muted-foreground">{tx(t('Нет сервисов под этот фильтр.', 'No services match this filter.'))}</p>}
     </div>
   )
 }
@@ -90,51 +101,51 @@ export function ProviderPicker({
 export function ProviderDetails({ provider }: { provider: Provider }) {
   return (
     <div className="space-y-4 text-sm">
-      <p className="leading-relaxed text-muted-foreground">{provider.description}</p>
+      <p className="leading-relaxed text-muted-foreground">{tx(provider.description)}</p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg border p-3">
-          <div className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">Бесплатно</div>
-          <div className="font-medium">{provider.free}</div>
+          <div className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">{tx(t('Бесплатно', 'Free'))}</div>
+          <div className="font-medium">{tx(provider.free)}</div>
           <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <CreditCard className="size-3.5" /> Банковская карта: {provider.card}
+            <CreditCard className="size-3.5" /> {tx(t('Банковская карта', 'Bank card'))}: {tx(CARD_TEXT[provider.card])}
           </div>
         </div>
         <div className="rounded-lg border p-3">
-          <div className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">После лимита</div>
-          <div>{provider.pricing}</div>
+          <div className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">{tx(t('После лимита', 'After the free tier'))}</div>
+          <div>{tx(provider.pricing)}</div>
         </div>
       </div>
 
       <div>
-        <div className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">Лимиты</div>
+        <div className="mb-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">{tx(t('Лимиты', 'Limits'))}</div>
         <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
           {provider.limits.map((l) => (
-            <li key={l}>{l}</li>
+            <li key={tx(l)}>{tx(l)}</li>
           ))}
         </ul>
       </div>
 
       <div className="rounded-lg border bg-muted/40 p-3">
         <div className="mb-2 flex items-center gap-2 font-medium">
-          <KeyRound className="size-4" /> Как получить ключ
+          <KeyRound className="size-4" /> {tx(t('Как получить ключ', 'How to get a key'))}
         </div>
         <ol className="list-decimal space-y-1.5 pl-5">
           {provider.keySteps.map((s) => (
-            <li key={s} className="leading-relaxed">
-              <Linkify text={s} />
+            <li key={tx(s)} className="leading-relaxed">
+              <Linkify text={tx(s)} />
             </li>
           ))}
         </ol>
         <div className="mt-3 flex flex-wrap gap-2">
           <ButtonLink href={provider.keyUrl} size="sm">
-            <KeyRound /> Открыть страницу ключей
+            <KeyRound /> {tx(t('Открыть страницу ключей', 'Open the keys page'))}
           </ButtonLink>
           <ButtonLink href={provider.signupUrl} size="sm" variant="outline">
-            <ExternalLink /> Регистрация
+            <ExternalLink /> {tx(t('Регистрация', 'Sign up'))}
           </ButtonLink>
           <ButtonLink href={provider.docsUrl} size="sm" variant="ghost">
-            <Globe /> Документация
+            <Globe /> {tx(t('Документация', 'Docs'))}
           </ButtonLink>
         </div>
       </div>
@@ -144,8 +155,18 @@ export function ProviderDetails({ provider }: { provider: Provider }) {
           <ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" />
           <div>
             {provider.cors === 'no'
-              ? 'Этот сервис не разрешает запросы прямо из браузера. Нужен свой CORS-прокси (бесплатный Cloudflare Worker, инструкция — во вкладке «Настройки»).'
-              : 'Не удалось точно проверить, пускает ли сервис запросы из браузера. Если увидите ошибку сети — включите CORS-прокси во вкладке «Настройки».'}
+              ? tx(
+                  t(
+                    'Этот сервис не разрешает запросы прямо из браузера. Нужен свой CORS-прокси (бесплатный Cloudflare Worker, инструкция — во вкладке «Настройки»).',
+                    'This service does not allow requests straight from the browser. You need your own CORS proxy (a free Cloudflare Worker, instructions in the Settings tab).',
+                  ),
+                )
+              : tx(
+                  t(
+                    'Не удалось точно проверить, пускает ли сервис запросы из браузера. Если увидите ошибку сети — включите CORS-прокси во вкладке «Настройки».',
+                    'We could not verify whether this service accepts browser requests. If you see a network error, enable the CORS proxy in the Settings tab.',
+                  ),
+                )}
           </div>
         </div>
       )}
