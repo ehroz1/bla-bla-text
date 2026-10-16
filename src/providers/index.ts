@@ -4,7 +4,6 @@ import { elevenlabs } from './elevenlabs'
 import { gemini } from './gemini'
 import { gladia } from './gladia'
 import { groq } from './groq'
-import { mistral } from './mistral'
 import { openai } from './openai'
 import { soniox } from './soniox'
 import { speechmatics } from './speechmatics'
@@ -19,7 +18,6 @@ export const providers: Provider[] = [
   speechmatics,
   assemblyai,
   gladia,
-  mistral,
   deepgram,
   soniox,
   yandex,

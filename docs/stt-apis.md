@@ -37,7 +37,7 @@
 4. **Groq Whisper large-v3**: ~8 бесплатных часов в день, очень быстрый. Смешанную речь улучшает двуязычная подсказка.
 5. **AssemblyAI**: Universal-2 с `code_switching`, $50.
 6. **Gladia Solaria-1**: `languages:["ru","en"]` + `code_switching`, €50.
-7. **Mistral Voxtral**: бесплатный режим, спикеры, `context_bias`.
+7. **Mistral Voxtral**: убран из приложения — на практике бесплатный режим не работает.
 
 **Казахский:**
 1. **ElevenLabs Scribe v2**: бесплатный лимит, работает из браузера, сильный kk.
@@ -47,11 +47,10 @@
 
 ## Эндпоинты (как реализовано в `src/providers/`)
 
-### Groq / OpenAI / Mistral — формат OpenAI
+### Groq / OpenAI — формат OpenAI
 `POST {base}/audio/transcriptions`, multipart: `file`, `model`, `language`, `prompt`, `response_format`, `timestamp_granularities[]`.
 - **Groq**: `https://api.groq.com/openai/v1`, `Authorization: Bearer`. Модели `whisper-large-v3` и `whisper-large-v3-turbo`. Файл до 25 МБ на бесплатном тарифе. Остаток лимитов приходит в заголовках `x-ratelimit-*`.
 - **OpenAI**: `gpt-4o(-mini)-transcribe` отдают только `json` без таймкодов. `whisper-1` поддерживает `verbose_json`. `gpt-4o-transcribe-diarize` работает с `diarized_json` и `chunking_strategy=auto`.
-- **Mistral**: `https://api.mistral.ai/v1`, модель `voxtral-mini-latest`. Доступны `diarize=true` и `context_bias`. `timestamp_granularities` нельзя использовать вместе с `language`.
 
 ### Google Gemini
 `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`, заголовок `x-goog-api-key`. В теле запроса передаются `inlineData` (base64, весь запрос до ~20 МБ) и промпт; `responseSchema` задаёт сегменты `{start, end, speaker, text}`. Своих таймкодов у Gemini нет: их просим в ответе, поэтому они приблизительные. BLA-БЛА отправляет запись кусками по 10 минут. Список моделей: `GET /v1beta/models`.

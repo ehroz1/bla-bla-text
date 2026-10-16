@@ -1,4 +1,4 @@
-// Общая реализация для API, совместимых с OpenAI /v1/audio/transcriptions (OpenAI, Groq, Mistral…).
+// Общая реализация для API, совместимых с OpenAI /v1/audio/transcriptions (OpenAI, Groq…).
 import { langOrUndefined, pickRateHeaders, requestJson } from './http'
 import type { ProviderContext, Segment, TranscriptResult } from './types'
 import { t, tx } from '@/lib/i18n'

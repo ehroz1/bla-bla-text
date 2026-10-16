@@ -23,7 +23,6 @@ const ALLOWED_HOSTS = [
   'eu1.asr.api.speechmatics.com',
   'us1.asr.api.speechmatics.com',
   'api.soniox.com',
-  'api.mistral.ai',
   'router.huggingface.co',
   'stt.api.cloud.yandex.net',
   'operation.api.cloud.yandex.net',

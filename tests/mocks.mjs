@@ -152,17 +152,6 @@ Object.assign(mocks, {
     },
     expect: ({ text, calls }) => (calls[0].headers['x-gladia-key'] && text.includes('Спикер 2: Привет.')) || 'bad: ' + text,
   },
-  mistral: {
-    match: 'https://api.mistral.ai/**',
-    respond: () =>
-      json({
-        model: 'voxtral-mini-2602',
-        text: 'Привет, это deadline.',
-        language: 'ru',
-        segments: [{ text: 'Привет, это deadline.', start: 0, end: 2, speaker_id: 'speaker_1' }],
-      }),
-    expect: ({ text }) => text.includes('deadline') || 'bad',
-  },
   deepgram: {
     match: 'https://api.deepgram.com/**',
     respond: (req) => {

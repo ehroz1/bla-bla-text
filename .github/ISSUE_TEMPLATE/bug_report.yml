@@ -10,7 +10,7 @@ body:
     id: provider
     attributes:
       label: Service
-      options: [Groq, Google Gemini, ElevenLabs, Speechmatics, AssemblyAI, Gladia, Mistral, Deepgram, Soniox, Yandex SpeechKit, OpenAI, Not provider-specific]
+      options: [Groq, Google Gemini, ElevenLabs, Speechmatics, AssemblyAI, Gladia, Deepgram, Soniox, Yandex SpeechKit, OpenAI, Not provider-specific]
     validations:
       required: true
   - type: input

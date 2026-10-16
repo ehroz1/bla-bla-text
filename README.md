@@ -65,7 +65,6 @@ BLA-БЛА puts 11 services behind one page:
 | [Speechmatics](https://portal.speechmatics.com/settings/api-keys) | ●●● | — | $100 one-time | no | not verified | hours used this month |
 | [AssemblyAI](https://www.assemblyai.com/dashboard/api-keys) | ●●○ | — | $50 one-time | no | not verified | transcripts this month |
 | [Gladia](https://app.gladia.io/apikeys) | ●●● | ●●○ | €50 one-time | no | not verified | key check |
-| [Mistral Voxtral](https://console.mistral.ai/api-keys) | ●●○ | — | Free plan | no | not verified | key check |
 | [Deepgram Nova-3](https://console.deepgram.com) | ●●● | — | $200 one-time | no | needs proxy | project balance |
 | [Soniox](https://console.soniox.com) | ●●● | ●●● | paid, ~$0.10/h | yes | not verified | key check |
 | [Yandex SpeechKit](https://console.yandex.cloud) | ●●○ | ●●● | Yandex Cloud starter grant | yes | needs proxy | — |
@@ -138,7 +137,7 @@ Some APIs refuse requests made directly from a web page. For those, deploy [`pro
 ## Privacy and limitations
 
 - **Where data goes:** the media file goes only to the provider you choose. Keys, settings, history and usage counters live in `localStorage` in your browser. The page also loads its font from Google Fonts.
-- **Provider data policies:** some free tiers may use your data for training. The in-app cards point this out for Gemini and Mistral. Check each provider's terms before uploading sensitive recordings.
+- **Provider data policies:** some free tiers may use your data for training. The in-app cards point this out for Gemini. Check each provider's terms before uploading sensitive recordings.
 - **`localStorage` is not a vault:** anyone with access to your browser profile can read stored keys. Use the trash button or **Settings → Erase everything** on shared machines.
 - **Browser support:** audio processing relies on WebCodecs, with a Web Audio fallback. Automated tests run in headless Chromium. Other browsers haven't been tested systematically; open-source Chromium builds can't decode AAC (mp4/m4a), in which case the original file is uploaded.
 - **Long files take time:** MP3 encoding is CPU-bound. In the test VM, compressing a 40-minute file took about 2.5 minutes.
