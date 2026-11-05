@@ -13,6 +13,8 @@
   <a href="https://ehroz1.github.io/bla-bla-text/bla-bla.html">Версия одним файлом</a>
   ·
   <a href="README.md">English</a>
+  ·
+  <a href="https://ehroz.pro/bla-bla/">Об авторе и другие приложения Ehroz</a>
 </p>
 
 <p align="center">

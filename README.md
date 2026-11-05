@@ -15,6 +15,8 @@
   <a href="https://ehroz1.github.io/bla-bla-text/bla-bla.html">Single-file version</a>
   ·
   <a href="README.ru.md">Читать на русском</a>
+  ·
+  <a href="https://ehroz.pro/en/bla-bla/">About &amp; other apps by Ehroz</a>
 </p>
 
 <p align="center">
